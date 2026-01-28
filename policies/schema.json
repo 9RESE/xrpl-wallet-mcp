@@ -1,0 +1,739 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://xrpl-wallet-mcp.dev/schemas/agent-wallet-policy.json",
+  "title": "AgentWalletPolicy",
+  "description": "Policy schema for XRPL Agent Wallet MCP server. Defines transaction authorization rules, limits, and security controls for AI agents operating XRPL wallets.",
+  "type": "object",
+  "required": ["version", "name", "network", "tiers", "rules", "limits"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "description": "Policy schema version in major.minor format. Used for migration and compatibility.",
+      "examples": ["1.0", "1.1", "2.0"],
+      "default": "1.0"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-_]*$",
+      "description": "Human-readable policy name. Must start with alphanumeric, may contain hyphens and underscores.",
+      "examples": ["default-mainnet-policy", "trading-agent-strict", "escrow-only-policy"]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1024,
+      "description": "Optional description of the policy's purpose and intended use case.",
+      "examples": ["Conservative policy for production mainnet agent operations"]
+    },
+    "network": {
+      "type": "string",
+      "enum": ["mainnet", "testnet", "devnet"],
+      "description": "Target XRPL network. Policy is isolated per network. Mainnet policies should be most restrictive."
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this policy is active. Disabled policies reject all transactions."
+    },
+    "tiers": {
+      "type": "object",
+      "description": "Tier configurations defining approval levels. Transactions are classified into tiers based on risk.",
+      "required": ["autonomous", "delayed", "cosign", "prohibited"],
+      "additionalProperties": false,
+      "properties": {
+        "autonomous": {
+          "$ref": "#/definitions/autonomousTier"
+        },
+        "delayed": {
+          "$ref": "#/definitions/delayedTier"
+        },
+        "cosign": {
+          "$ref": "#/definitions/cosignTier"
+        },
+        "prohibited": {
+          "$ref": "#/definitions/prohibitedTier"
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "description": "Ordered list of policy rules. Rules are evaluated by priority (lower number = higher priority).",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/rule"
+      }
+    },
+    "blocklist": {
+      "$ref": "#/definitions/blocklist",
+      "description": "Addresses and patterns to always reject. Blocklist is checked before all other rules."
+    },
+    "allowlist": {
+      "$ref": "#/definitions/allowlist",
+      "description": "Pre-approved addresses and tags. Allowlisted destinations may receive favorable tier classification."
+    },
+    "limits": {
+      "$ref": "#/definitions/limits",
+      "description": "Global rate and volume limits. These are hard limits that cannot be bypassed by rules."
+    },
+    "transaction_types": {
+      "$ref": "#/definitions/transactionTypeConfig",
+      "description": "Per-transaction-type overrides. Allows fine-grained control over specific XRPL transaction types."
+    },
+    "escalation": {
+      "$ref": "#/definitions/escalation",
+      "description": "Configuration for human escalation when transactions exceed autonomous limits."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Arbitrary metadata for policy management. Not used in evaluation.",
+      "additionalProperties": true,
+      "properties": {
+        "created_by": {
+          "type": "string",
+          "description": "Creator of this policy"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of policy creation"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of last update"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Tags for categorization"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "autonomousTier": {
+      "type": "object",
+      "description": "Tier 1: Transactions approved automatically without human intervention. Lowest risk threshold.",
+      "required": ["max_amount_xrp", "daily_limit_xrp"],
+      "additionalProperties": false,
+      "properties": {
+        "max_amount_xrp": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000,
+          "description": "Maximum XRP per single autonomous transaction. Security: Keep low for mainnet.",
+          "default": 100
+        },
+        "daily_limit_xrp": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10000000,
+          "description": "Maximum total XRP that can be sent autonomously per day (UTC reset).",
+          "default": 1000
+        },
+        "require_known_destination": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, autonomous tier requires destination to be in allowlist."
+        },
+        "allowed_transaction_types": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/transactionType"
+          },
+          "description": "Transaction types allowed in autonomous tier. If empty, uses default safe types.",
+          "default": ["Payment", "EscrowFinish", "EscrowCancel", "OfferCancel", "CheckCash", "CheckCancel", "NFTokenCancelOffer"]
+        },
+        "max_fee_drops": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 100000000,
+          "default": 100000,
+          "description": "Maximum transaction fee in drops. Prevents fee escalation attacks."
+        }
+      }
+    },
+    "delayedTier": {
+      "type": "object",
+      "description": "Tier 2: Transactions held for a delay period, allowing human veto before execution.",
+      "required": ["max_amount_xrp", "daily_limit_xrp", "delay_seconds"],
+      "additionalProperties": false,
+      "properties": {
+        "max_amount_xrp": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10000000,
+          "description": "Maximum XRP per single delayed transaction.",
+          "default": 1000
+        },
+        "daily_limit_xrp": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000000,
+          "description": "Maximum total XRP that can be sent via delayed tier per day.",
+          "default": 10000
+        },
+        "delay_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 86400,
+          "default": 300,
+          "description": "Time to hold transaction before execution (seconds). Security: Longer delays allow more review time."
+        },
+        "veto_enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether humans can veto delayed transactions during the delay period."
+        },
+        "notify_on_queue": {
+          "type": "boolean",
+          "default": true,
+          "description": "Send notification when transaction enters delay queue."
+        }
+      }
+    },
+    "cosignTier": {
+      "type": "object",
+      "description": "Tier 3: Transactions requiring explicit human co-signature. For high-value or high-risk operations.",
+      "required": ["signer_quorum"],
+      "additionalProperties": false,
+      "properties": {
+        "min_amount_xrp": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Transactions above this amount require co-signature.",
+          "default": 1000
+        },
+        "new_destination_always": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, first transaction to any new destination requires co-signature."
+        },
+        "signer_quorum": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32,
+          "default": 2,
+          "description": "Number of signatures required for co-sign transactions (including agent)."
+        },
+        "approval_timeout_hours": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 168,
+          "default": 24,
+          "description": "Hours before pending co-sign request expires. Max 7 days (168 hours)."
+        },
+        "notify_signers": {
+          "type": "boolean",
+          "default": true,
+          "description": "Send notifications to designated signers when co-sign is required."
+        },
+        "signer_addresses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/xrplAddress"
+          },
+          "description": "XRPL addresses of authorized co-signers. Must be configured for multi-sign.",
+          "maxItems": 32
+        }
+      }
+    },
+    "prohibitedTier": {
+      "type": "object",
+      "description": "Tier 4: Transactions that are never allowed by this policy.",
+      "additionalProperties": false,
+      "properties": {
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "blocklist",
+              "daily_limit_exceeded",
+              "hourly_limit_exceeded",
+              "unknown_type",
+              "high_risk_type",
+              "injection_detected",
+              "invalid_destination",
+              "policy_disabled"
+            ]
+          },
+          "description": "Reasons that trigger prohibition. Used for logging and user feedback.",
+          "default": ["blocklist", "daily_limit_exceeded", "unknown_type", "injection_detected"]
+        },
+        "prohibited_transaction_types": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/transactionType"
+          },
+          "description": "Transaction types that are never allowed. Security: Account management types should be here unless explicitly needed.",
+          "default": ["Clawback"]
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "description": "A single policy rule that matches transactions and assigns tiers.",
+      "required": ["id", "name", "priority", "condition", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^rule-[a-zA-Z0-9-]+$",
+          "minLength": 6,
+          "maxLength": 64,
+          "description": "Unique rule identifier. Format: rule-{identifier}",
+          "examples": ["rule-001", "rule-high-value", "rule-blocklist-check"]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Human-readable rule name for logging and debugging."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "Optional explanation of rule purpose."
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9999,
+          "description": "Rule evaluation order. Lower numbers = higher priority. Use gaps (10, 20, 30) for insertions."
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether this rule is active. Disabled rules are skipped during evaluation."
+        },
+        "condition": {
+          "$ref": "#/definitions/condition",
+          "description": "Condition that must match for this rule to apply."
+        },
+        "action": {
+          "$ref": "#/definitions/action",
+          "description": "Action to take when condition matches."
+        }
+      }
+    },
+    "condition": {
+      "oneOf": [
+        { "$ref": "#/definitions/simpleCondition" },
+        { "$ref": "#/definitions/logicalCondition" },
+        { "$ref": "#/definitions/alwaysCondition" }
+      ],
+      "description": "Condition for rule matching. Can be simple field comparison, logical combination, or always-true."
+    },
+    "simpleCondition": {
+      "type": "object",
+      "required": ["field", "operator", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "type": "string",
+          "enum": [
+            "destination",
+            "amount_xrp",
+            "amount_drops",
+            "transaction_type",
+            "transaction_category",
+            "memo",
+            "memo_type",
+            "fee_drops",
+            "destination_tag",
+            "source_tag",
+            "daily_volume_xrp",
+            "hourly_count",
+            "is_new_destination",
+            "currency",
+            "issuer"
+          ],
+          "description": "Transaction field to evaluate."
+        },
+        "operator": {
+          "type": "string",
+          "enum": ["==", "!=", ">", ">=", "<", "<=", "in", "not_in", "matches", "contains", "starts_with", "ends_with", "in_category"],
+          "description": "Comparison operator. 'matches' uses regex, 'in' checks array membership."
+        },
+        "value": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "number" },
+            { "type": "boolean" },
+            { "type": "array", "items": { "type": "string" } },
+            { "$ref": "#/definitions/valueReference" }
+          ],
+          "description": "Value to compare against. Can be literal or reference to blocklist/allowlist."
+        }
+      }
+    },
+    "logicalCondition": {
+      "type": "object",
+      "oneOf": [
+        {
+          "required": ["and"],
+          "properties": {
+            "and": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/condition" },
+              "minItems": 2,
+              "description": "All conditions must match (logical AND)."
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": ["or"],
+          "properties": {
+            "or": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/condition" },
+              "minItems": 2,
+              "description": "At least one condition must match (logical OR)."
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": ["not"],
+          "properties": {
+            "not": {
+              "$ref": "#/definitions/condition",
+              "description": "Inverts the condition result (logical NOT)."
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "alwaysCondition": {
+      "type": "object",
+      "required": ["always"],
+      "additionalProperties": false,
+      "properties": {
+        "always": {
+          "type": "boolean",
+          "const": true,
+          "description": "Always matches. Used for default/catch-all rules."
+        }
+      }
+    },
+    "valueReference": {
+      "type": "object",
+      "required": ["ref"],
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "type": "string",
+          "enum": [
+            "blocklist.addresses",
+            "blocklist.memo_patterns",
+            "allowlist.addresses",
+            "allowlist.trusted_tags"
+          ],
+          "description": "Reference to a list defined elsewhere in the policy."
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": ["tier"],
+      "additionalProperties": false,
+      "properties": {
+        "tier": {
+          "type": "string",
+          "enum": ["autonomous", "delayed", "cosign", "prohibited"],
+          "description": "Tier to assign when rule matches."
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Human-readable reason for this action. Logged and returned to caller."
+        },
+        "override_delay_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 86400,
+          "description": "Override default delay for delayed tier. Rule-specific delay."
+        },
+        "notify": {
+          "type": "boolean",
+          "description": "Whether to send notification for this specific action."
+        },
+        "log_level": {
+          "type": "string",
+          "enum": ["info", "warn", "error"],
+          "default": "info",
+          "description": "Log level for this action. 'error' for security-relevant denials."
+        }
+      }
+    },
+    "blocklist": {
+      "type": "object",
+      "description": "Blocklist configuration. All blocklist matches result in immediate prohibition.",
+      "additionalProperties": false,
+      "properties": {
+        "addresses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/xrplAddress"
+          },
+          "uniqueItems": true,
+          "maxItems": 10000,
+          "default": [],
+          "description": "XRPL addresses to always block. Check against known scam/sanctions lists."
+        },
+        "memo_patterns": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "uniqueItems": true,
+          "maxItems": 100,
+          "default": ["ignore.*previous", "\\[INST\\]", "<<SYS>>", "system.*prompt", "admin.*override"],
+          "description": "Regex patterns to block in transaction memos. Security: Detects prompt injection attempts."
+        },
+        "currency_issuers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/xrplAddress"
+          },
+          "uniqueItems": true,
+          "maxItems": 1000,
+          "default": [],
+          "description": "Blocked token issuers. Prevents interaction with known scam tokens."
+        }
+      }
+    },
+    "allowlist": {
+      "type": "object",
+      "description": "Allowlist configuration. Allowlisted destinations may receive favorable treatment.",
+      "additionalProperties": false,
+      "properties": {
+        "addresses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/xrplAddress"
+          },
+          "uniqueItems": true,
+          "maxItems": 1000,
+          "default": [],
+          "description": "Pre-approved destination addresses. Transactions here may skip new-destination checks."
+        },
+        "trusted_tags": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "uniqueItems": true,
+          "maxItems": 1000,
+          "default": [],
+          "description": "Trusted destination tags. Combined with allowlist addresses for exchange deposits."
+        },
+        "auto_learn": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, successful co-signed transactions add destinations to allowlist. Security: Use with caution."
+        },
+        "exchange_addresses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["address", "name"],
+            "properties": {
+              "address": { "$ref": "#/definitions/xrplAddress" },
+              "name": { "type": "string", "maxLength": 64 },
+              "require_tag": { "type": "boolean", "default": true }
+            }
+          },
+          "maxItems": 100,
+          "description": "Known exchange addresses. May have special handling (e.g., require destination tag)."
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "description": "Global rate and volume limits. Hard ceilings that cannot be exceeded.",
+      "required": ["daily_reset_utc_hour", "max_transactions_per_hour", "max_transactions_per_day"],
+      "additionalProperties": false,
+      "properties": {
+        "daily_reset_utc_hour": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23,
+          "default": 0,
+          "description": "Hour (UTC) when daily limits reset. 0 = midnight UTC."
+        },
+        "max_transactions_per_hour": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000,
+          "default": 100,
+          "description": "Maximum transactions per rolling hour. Prevents rapid drain attacks."
+        },
+        "max_transactions_per_day": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000,
+          "default": 1000,
+          "description": "Maximum transactions per day. Hard cap on daily activity."
+        },
+        "max_unique_destinations_per_day": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 50,
+          "description": "Maximum unique destination addresses per day. Limits fund scattering."
+        },
+        "max_total_volume_xrp_per_day": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000000,
+          "default": 10000,
+          "description": "Absolute maximum XRP volume per day across all tiers."
+        },
+        "cooldown_after_high_value": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean", "default": false },
+            "threshold_xrp": { "type": "number", "minimum": 0, "default": 1000 },
+            "cooldown_seconds": { "type": "integer", "minimum": 60, "maximum": 3600, "default": 300 }
+          },
+          "description": "Optional cooldown period after high-value transactions."
+        }
+      }
+    },
+    "transactionTypeConfig": {
+      "type": "object",
+      "description": "Per-transaction-type configuration overrides.",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[A-Z][a-zA-Z]+$": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "description": "Whether this transaction type is allowed at all."
+            },
+            "default_tier": {
+              "type": "string",
+              "enum": ["autonomous", "delayed", "cosign", "prohibited"],
+              "description": "Default tier for this transaction type (before rules)."
+            },
+            "max_amount_xrp": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Type-specific amount limit override."
+            },
+            "require_cosign": {
+              "type": "boolean",
+              "default": false,
+              "description": "Always require co-signature for this type."
+            }
+          }
+        }
+      }
+    },
+    "escalation": {
+      "type": "object",
+      "description": "Human escalation configuration for approval workflows.",
+      "additionalProperties": false,
+      "properties": {
+        "webhook_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "HTTPS URL for escalation notifications. Must be HTTPS for security."
+        },
+        "webhook_secret": {
+          "type": "string",
+          "minLength": 32,
+          "maxLength": 128,
+          "description": "HMAC secret for webhook signature verification. Store securely, not in policy file."
+        },
+        "notification_channels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["webhook", "email", "slack", "discord"]
+          },
+          "default": ["webhook"],
+          "description": "Channels for escalation notifications."
+        },
+        "escalation_contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type", "address"],
+            "properties": {
+              "name": { "type": "string", "maxLength": 64 },
+              "type": { "type": "string", "enum": ["email", "phone", "xrpl_address"] },
+              "address": { "type": "string", "maxLength": 256 },
+              "priority": { "type": "integer", "minimum": 1, "maximum": 10, "default": 5 }
+            }
+          },
+          "maxItems": 20,
+          "description": "Contacts for escalation. Notified based on priority."
+        },
+        "auto_deny_on_timeout": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, pending approvals are denied when timeout expires. If false, remain pending."
+        }
+      }
+    },
+    "transactionType": {
+      "type": "string",
+      "enum": [
+        "Payment",
+        "TrustSet",
+        "OfferCreate",
+        "OfferCancel",
+        "EscrowCreate",
+        "EscrowFinish",
+        "EscrowCancel",
+        "PaymentChannelCreate",
+        "PaymentChannelFund",
+        "PaymentChannelClaim",
+        "AccountSet",
+        "SetRegularKey",
+        "SignerListSet",
+        "NFTokenMint",
+        "NFTokenBurn",
+        "NFTokenCreateOffer",
+        "NFTokenAcceptOffer",
+        "NFTokenCancelOffer",
+        "AMMCreate",
+        "AMMDeposit",
+        "AMMWithdraw",
+        "AMMVote",
+        "AMMBid",
+        "AMMDelete",
+        "CheckCreate",
+        "CheckCash",
+        "CheckCancel",
+        "TicketCreate",
+        "Clawback",
+        "DIDSet",
+        "DIDDelete",
+        "OracleSet",
+        "OracleDelete"
+      ],
+      "description": "XRPL transaction type. See xrpl.org for full documentation."
+    },
+    "xrplAddress": {
+      "type": "string",
+      "pattern": "^r[1-9A-HJ-NP-Za-km-z]{24,34}$",
+      "description": "XRPL address in base58check format (r-address)."
+    }
+  }
+}
