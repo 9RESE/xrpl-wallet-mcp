@@ -4,15 +4,20 @@
  * Signs transactions with policy enforcement (autonomous, delayed, co-sign, or prohibited).
  * Supports auto-sequence filling to prevent tefPAST_SEQ errors in multi-transaction workflows.
  *
+ * Uses local sequence tracking to handle race conditions where ledger queries return stale
+ * sequence numbers between rapid successive signings.
+ *
  * @module tools/wallet-sign
- * @version 2.0.0
+ * @version 2.1.0
  * @since 2026-01-29 - Added auto_sequence support (ADR-013)
+ * @since 2026-01-29 - Added local sequence tracking to fix race condition
  */
 
 import { decode, encode, type Transaction } from 'xrpl';
 import type { ServerContext } from '../server.js';
 import type { WalletSignInput, WalletSignOutput } from '../schemas/index.js';
 import { getWalletPassword } from '../utils/env.js';
+import { getSequenceTracker } from '../xrpl/sequence-tracker.js';
 
 /**
  * Handle wallet_sign tool invocation.
@@ -48,24 +53,34 @@ export async function handleWalletSign(
   // Decode transaction to extract fields
   let decoded = decode(input.unsigned_tx) as Transaction & Record<string, unknown>;
 
-  // Auto-sequence: fetch fresh sequence from ledger (default: true)
+  // Auto-sequence: fetch fresh sequence from ledger with local tracking (default: true)
   // This prevents tefPAST_SEQ errors in multi-transaction workflows
+  // Uses local sequence tracker to handle race conditions where ledger query returns stale data
   let transactionBlob = input.unsigned_tx;
+  let usedSequence: number | undefined;
 
   if (input.auto_sequence !== false) {
     try {
-      // Get fresh account info from validated ledger
+      // Get sequence tracker (shared across all signing operations)
+      const sequenceTracker = getSequenceTracker();
+
+      // Get account info from validated ledger
       const accountInfo = await xrplClient.getAccountInfo(input.wallet_address);
-      const currentSequence = accountInfo.sequence;
+      const ledgerSequence = accountInfo.sequence;
+
+      // Use MAX(ledger_sequence, last_signed_sequence + 1) to handle race conditions
+      // This ensures we don't reuse a sequence that was just signed but not yet validated
+      const nextSequence = sequenceTracker.getNextSequence(input.wallet_address, ledgerSequence);
 
       // Track if we need to re-encode
       let needsReencode = false;
 
-      // Update sequence if different or missing
-      if (decoded.Sequence !== currentSequence) {
-        decoded.Sequence = currentSequence;
+      // Update sequence if different from calculated next sequence
+      if (decoded.Sequence !== nextSequence) {
+        decoded.Sequence = nextSequence;
         needsReencode = true;
       }
+      usedSequence = decoded.Sequence;
 
       // Autofill Fee if missing
       if (!decoded.Fee) {
@@ -173,6 +188,13 @@ export async function handleWalletSign(
     policy_decision: 'allowed',
     ...(input.context ? { context: input.context } : {}),
   });
+
+  // Record the signed sequence to prevent race conditions on next signing
+  // This ensures the next TX for this address uses sequence + 1, even if ledger hasn't caught up
+  if (usedSequence !== undefined) {
+    const sequenceTracker = getSequenceTracker();
+    sequenceTracker.recordSignedSequence(input.wallet_address, usedSequence);
+  }
 
   // Get limit state from policy engine for accurate reporting
   const limitState = policyEngine.getLimitState();

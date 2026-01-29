@@ -44,3 +44,10 @@ export {
   getFaucetUrl,
   getConnectionConfig,
 } from './config.js';
+
+// Sequence tracker exports
+export {
+  SequenceTracker,
+  getSequenceTracker,
+  resetSequenceTracker,
+} from './sequence-tracker.js';

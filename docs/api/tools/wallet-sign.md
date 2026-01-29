@@ -1,6 +1,6 @@
 # wallet_sign MCP Tool Specification
 
-**Version:** 2.0.0
+**Version:** 2.1.0
 **Date:** 2026-01-29
 **Status:** Complete
 **Security Classification:** CRITICAL
@@ -138,16 +138,23 @@ export const WalletSignInputSchema = z.object({
 | `context` | string | No | - | Human-readable reason (audit only, max 500 chars) |
 | `auto_sequence` | boolean | No | `true` | Autofill sequence/fee/LastLedgerSequence from ledger |
 
-### 2.2.1 auto_sequence Parameter (v2.0.0+)
+### 2.2.1 auto_sequence Parameter (v2.0.0+, enhanced v2.1.0)
 
 The `auto_sequence` parameter prevents `tefPAST_SEQ` errors in multi-transaction workflows:
 
 **When `auto_sequence: true` (default)**:
-1. Queries `account_info` from validated ledger
-2. Updates transaction `Sequence` to current account sequence
-3. Autofills `Fee` if missing (from network fee)
-4. Autofills `LastLedgerSequence` if missing (current ledger + 20)
-5. Re-encodes transaction before signing
+1. Queries `account_info` from validated ledger to get `ledgerSequence`
+2. Checks local sequence tracker for last signed sequence for this address
+3. Uses `MAX(ledgerSequence, lastSignedSequence + 1)` to handle race conditions
+4. Autofills `Fee` if missing (from network fee)
+5. Autofills `LastLedgerSequence` if missing (current ledger + 20)
+6. Re-encodes transaction before signing
+7. **After signing**: Records sequence in local tracker (60-second TTL)
+
+**Why local tracking?** (v2.1.0)
+- After signing TX A with sequence N, the ledger may still return N until TX A is validated
+- Local tracking ensures TX B immediately uses N+1, even if ledger hasn't caught up
+- 60-second TTL handles cases where signed TXs are never submitted
 
 **When `auto_sequence: false`**:
 - Signs transaction as-is with the provided sequence
@@ -1783,6 +1790,7 @@ interface ErrorResponse {
 |---------|------|--------|---------|
 | 1.0.0 | 2026-01-28 | JavaScript Developer Agent | Initial comprehensive specification |
 | 2.0.0 | 2026-01-29 | - | Added `auto_sequence` parameter to prevent tefPAST_SEQ in multi-tx workflows |
+| 2.1.0 | 2026-01-29 | - | Added local sequence tracking to fix race condition where ledger returns stale sequence |
 
 ---
 
