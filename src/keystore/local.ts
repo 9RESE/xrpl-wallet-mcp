@@ -152,6 +152,7 @@ interface WalletIndex {
 interface AuthAttemptRecord {
   timestamp: Date;
   success: boolean;
+  reason?: string;
 }
 
 // ============================================================================
@@ -193,30 +194,119 @@ function validatePassword(password: string, policy: PasswordPolicy): string[] {
 /**
  * Simple file locking mechanism for concurrent access safety.
  */
+/**
+ * FileLock provides both in-process and file-system level locking.
+ *
+ * Features:
+ * - In-process mutex to handle concurrent async operations
+ * - File-based lock files for cross-process safety
+ * - Automatic lock cleanup on timeout
+ * - Stale lock detection
+ */
 class FileLock {
-  private locks = new Map<string, Promise<void>>();
+  private inProcessLocks = new Map<string, Promise<void>>();
+  private static readonly LOCK_TIMEOUT_MS = 30000; // 30 seconds
+  private static readonly STALE_LOCK_THRESHOLD_MS = 60000; // 1 minute
 
   /**
    * Executes operation with exclusive access to the file.
+   * Uses both in-process and file-system level locks for cross-process safety.
    */
   async withLock<T>(key: string, operation: () => Promise<T>): Promise<T> {
-    // Wait for any existing lock
-    while (this.locks.has(key)) {
-      await this.locks.get(key);
+    // In-process lock first (fast path for single process)
+    while (this.inProcessLocks.has(key)) {
+      await this.inProcessLocks.get(key);
     }
 
-    // Create lock
+    // Create in-process lock
     let releaseLock: () => void;
     const lockPromise = new Promise<void>((resolve) => {
       releaseLock = resolve;
     });
-    this.locks.set(key, lockPromise);
+    this.inProcessLocks.set(key, lockPromise);
+
+    // File-based lock for cross-process safety
+    const lockPath = `${key}.lock`;
 
     try {
-      return await operation();
+      // Try to acquire file-based lock
+      await this.acquireFileLock(lockPath);
+
+      try {
+        return await operation();
+      } finally {
+        // Release file lock
+        await this.releaseFileLock(lockPath);
+      }
     } finally {
-      this.locks.delete(key);
+      // Release in-process lock
+      this.inProcessLocks.delete(key);
       releaseLock!();
+    }
+  }
+
+  /**
+   * Acquire a file-based lock.
+   * Creates a lock file with PID and timestamp for stale detection.
+   */
+  private async acquireFileLock(lockPath: string): Promise<void> {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < FileLock.LOCK_TIMEOUT_MS) {
+      try {
+        // Check for existing lock
+        const lockContent = await fs.readFile(lockPath, 'utf-8').catch(() => null);
+
+        if (lockContent) {
+          // Check if lock is stale
+          const lockData = JSON.parse(lockContent);
+          const lockAge = Date.now() - new Date(lockData.timestamp).getTime();
+
+          if (lockAge > FileLock.STALE_LOCK_THRESHOLD_MS) {
+            // Lock is stale, remove it
+            await fs.unlink(lockPath).catch(() => {});
+          } else {
+            // Lock is held, wait and retry
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            continue;
+          }
+        }
+
+        // Try to create lock file (exclusive flag ensures atomic creation)
+        const lockData = {
+          pid: process.pid,
+          timestamp: new Date().toISOString(),
+        };
+
+        await fs.writeFile(lockPath, JSON.stringify(lockData), {
+          flag: 'wx', // Exclusive create - fails if file exists
+          mode: 0o600,
+        });
+
+        return; // Lock acquired
+      } catch (error: any) {
+        if (error?.code === 'EEXIST') {
+          // Lock file was created by another process, retry
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          continue;
+        }
+        // Other error, ignore and continue (will use in-process lock only)
+        return;
+      }
+    }
+
+    // Timeout - proceed anyway with in-process lock only
+    console.warn(`[FileLock] Timeout acquiring lock for ${lockPath}, proceeding with in-process lock only`);
+  }
+
+  /**
+   * Release a file-based lock.
+   */
+  private async releaseFileLock(lockPath: string): Promise<void> {
+    try {
+      await fs.unlink(lockPath);
+    } catch {
+      // Ignore errors - lock file might already be removed
     }
   }
 }
@@ -249,6 +339,7 @@ export class LocalKeystore implements KeystoreProvider {
   // Rate limiting state
   private authAttempts: Map<string, AuthAttemptRecord[]> = new Map();
   private lockouts: Map<string, Date> = new Map();
+  private rateLimitStatePath: string = '';
 
   // ========================================================================
   // Lifecycle Methods
@@ -265,6 +356,9 @@ export class LocalKeystore implements KeystoreProvider {
       ? path.resolve(config.baseDir.replace(/^~/, homeDir))
       : path.join(homeDir, '.xrpl-wallet-mcp');
 
+    // Set rate limit state file path
+    this.rateLimitStatePath = path.join(this.baseDir, '.rate-limit-state.json');
+
     // Apply configuration
     if (config.passwordPolicy) {
       this.passwordPolicy = { ...DEFAULT_PASSWORD_POLICY, ...config.passwordPolicy };
@@ -279,7 +373,92 @@ export class LocalKeystore implements KeystoreProvider {
     // Verify permissions
     await this.verifyPermissions();
 
+    // Restore rate limiting state from disk
+    await this.restoreRateLimitState();
+
     this.initialized = true;
+  }
+
+  /**
+   * Persist rate limiting state to disk.
+   * Called after auth attempts and lockouts change.
+   */
+  private async persistRateLimitState(): Promise<void> {
+    if (!this.baseDir) return;
+
+    const state = {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      lockouts: Array.from(this.lockouts.entries()).map(([walletId, date]) => ({
+        walletId,
+        lockedUntil: date.toISOString(),
+      })),
+      authAttempts: Array.from(this.authAttempts.entries()).map(([walletId, attempts]) => ({
+        walletId,
+        attempts: attempts.map((a) => ({
+          timestamp: a.timestamp.toISOString(),
+          success: a.success,
+          reason: a.reason,
+        })),
+      })),
+    };
+
+    try {
+      await this.atomicWrite(this.rateLimitStatePath, JSON.stringify(state, null, 2));
+    } catch (error) {
+      // Log but don't fail - rate limiting will still work in-memory
+      console.warn('Failed to persist rate limit state:', error);
+    }
+  }
+
+  /**
+   * Restore rate limiting state from disk.
+   * Called during initialization.
+   */
+  private async restoreRateLimitState(): Promise<void> {
+    try {
+      const content = await fs.readFile(this.rateLimitStatePath, 'utf-8');
+      const state = JSON.parse(content);
+
+      // Clear existing state
+      this.lockouts.clear();
+      this.authAttempts.clear();
+
+      const now = new Date();
+
+      // Restore active lockouts (skip expired ones)
+      for (const entry of state.lockouts || []) {
+        const lockedUntil = new Date(entry.lockedUntil);
+        if (lockedUntil > now) {
+          this.lockouts.set(entry.walletId, lockedUntil);
+        }
+      }
+
+      // Restore recent auth attempts (keep last 24 hours)
+      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      for (const entry of state.authAttempts || []) {
+        const recentAttempts = (entry.attempts || [])
+          .map((a: any) => ({
+            timestamp: new Date(a.timestamp),
+            success: a.success,
+            reason: a.reason,
+          }))
+          .filter((a: AuthAttemptRecord) => a.timestamp > twentyFourHoursAgo);
+
+        if (recentAttempts.length > 0) {
+          this.authAttempts.set(entry.walletId, recentAttempts);
+        }
+      }
+
+      console.log(
+        `[LocalKeystore] Restored rate limit state: ${this.lockouts.size} lockouts, ` +
+          `${this.authAttempts.size} wallets with auth history`
+      );
+    } catch (error) {
+      // No state file or corrupted - start fresh (this is fine)
+      this.lockouts.clear();
+      this.authAttempts.clear();
+    }
   }
 
   async healthCheck(): Promise<KeystoreHealthResult> {
@@ -385,14 +564,15 @@ export class LocalKeystore implements KeystoreProvider {
     const xrplAlgorithm = algorithm === 'secp256k1' ? ECDSA.secp256k1 : ECDSA.ed25519;
     const xrplWallet = Wallet.generate(xrplAlgorithm);
 
-    // Get seed as buffer
-    const seedHex = xrplWallet.seed;
-    if (!seedHex) {
+    // Get seed for storage
+    const seedString = xrplWallet.seed;
+    if (!seedString) {
       throw new KeystoreWriteError('Failed to generate wallet seed', 'create');
     }
 
-    // Convert seed to buffer (xrpl seeds are base58, we'll store the entropy)
-    const seedBuffer = Buffer.from(xrplWallet.privateKey, 'hex');
+    // Store the seed as UTF-8 bytes (base58 encoded seed string)
+    // This is consistent with how we load it in SigningService
+    const seedBuffer = Buffer.from(seedString, 'utf-8');
     const seed = SecureBuffer.from(seedBuffer);
 
     try {
@@ -483,17 +663,17 @@ export class LocalKeystore implements KeystoreProvider {
 
         const decrypted = await this.decrypt(encryptedData, kek, iv, authTag);
 
-        // Record successful auth
-        this.recordAuthSuccess(walletId);
+        // Record successful auth (persists to disk)
+        await this.recordAuthSuccess(walletId);
 
         return decrypted;
       } finally {
         kek.dispose();
       }
     } catch (error) {
-      // Record failed auth attempt
+      // Record failed auth attempt (persists to disk)
       if (error instanceof AuthenticationError || error instanceof KeyDecryptionError) {
-        this.recordAuthFailure(walletId);
+        await this.recordAuthFailure(walletId);
       }
       throw error;
     }
@@ -523,17 +703,40 @@ export class LocalKeystore implements KeystoreProvider {
       }
     }
 
-    // Validate key format - must be 16 bytes (128-bit entropy)
+    // Validate key format - support standard key/seed lengths
+    // 16 bytes = 128-bit entropy for Wallet.fromEntropy()
+    // 29-35 bytes = base58-encoded seed string (e.g., "sEdT..." ~29 chars)
+    // 32 bytes = Ed25519 private key
+    // 33 bytes = secp256k1 private key (compressed)
     const keyBuffer = key.getBuffer();
-    if (keyBuffer.length !== 16) {
-      throw new InvalidKeyError('Invalid key length', 'Expected 16 bytes (128-bit entropy)');
+    const validLengths = [16, 29, 30, 31, 32, 33, 34, 35];
+    if (!validLengths.some((len) => Math.abs(keyBuffer.length - len) <= 2)) {
+      throw new InvalidKeyError(
+        'Invalid key length',
+        `Expected 16 bytes (entropy), 29-35 bytes (seed string), or 32-33 bytes (private key), got ${keyBuffer.length}`
+      );
     }
 
-    // Derive wallet from entropy (private key material)
+    // Derive wallet based on key format
     let xrplWallet: Wallet;
     try {
-      xrplWallet = Wallet.fromEntropy(keyBuffer);
-    } catch {
+      if (keyBuffer.length === 16) {
+        // 16 bytes = entropy
+        xrplWallet = Wallet.fromEntropy(keyBuffer);
+      } else if (keyBuffer.length >= 29 && keyBuffer.length <= 35) {
+        // Likely a base58-encoded seed string
+        const seedString = keyBuffer.toString('utf-8');
+        xrplWallet = Wallet.fromSeed(seedString);
+      } else {
+        // Try as entropy first, fall back to treating as seed bytes
+        try {
+          xrplWallet = Wallet.fromEntropy(keyBuffer.slice(0, 16));
+        } catch {
+          throw new InvalidKeyError('Could not derive wallet from key');
+        }
+      }
+    } catch (error) {
+      if (error instanceof InvalidKeyError) throw error;
       throw new InvalidKeyError('Could not derive wallet from key');
     }
 
@@ -658,9 +861,9 @@ export class LocalKeystore implements KeystoreProvider {
       const decrypted = await this.decrypt(encryptedData, kek, iv, authTag);
       decrypted.dispose();
 
-      this.recordAuthSuccess(walletId);
+      await this.recordAuthSuccess(walletId);
     } catch (error) {
-      this.recordAuthFailure(walletId);
+      await this.recordAuthFailure(walletId);
       throw error;
     } finally {
       kek.dispose();
@@ -743,6 +946,133 @@ export class LocalKeystore implements KeystoreProvider {
     await this.updateIndex(network, walletFile.entry, 'update');
   }
 
+  /**
+   * Store a regular key for a wallet.
+   *
+   * This allows the wallet to sign transactions with the regular key
+   * instead of the master key, providing better security through key rotation.
+   *
+   * @param walletId - Unique wallet identifier
+   * @param regularKeySeed - Regular key seed (base58 encoded)
+   * @param regularKeyAddress - Regular key's XRPL address
+   * @param password - User password for encryption
+   */
+  async storeRegularKey(
+    walletId: string,
+    regularKeySeed: string,
+    regularKeyAddress: string,
+    password: string
+  ): Promise<void> {
+    this.assertInitialized();
+
+    // Verify wallet exists and password is correct
+    const masterKey = await this.loadKey(walletId, password);
+    masterKey.dispose(); // Just verifying password, don't need the key
+
+    const { network, walletFile, filePath } = await this.findWallet(walletId);
+
+    // Encrypt the regular key seed
+    const regularKeySeedBuffer = Buffer.from(regularKeySeed, 'utf-8');
+    const regularKeySecure = SecureBuffer.from(regularKeySeedBuffer);
+
+    try {
+      // Derive encryption key for regular key (use same salt as master key)
+      const salt = Buffer.from(walletFile.entry.encryption.salt, 'base64');
+      const kek = await this.deriveKey(password, salt);
+
+      try {
+        const { encryptedData, iv, authTag } = await this.encrypt(
+          regularKeySecure.getBuffer(),
+          kek
+        );
+
+        // Store regular key in a separate file
+        const regularKeyFile = {
+          version: 1,
+          walletId,
+          regularKeyAddress,
+          encryptedKey: {
+            data: encryptedData.toString('base64'),
+            iv: iv.toString('base64'),
+            authTag: authTag.toString('base64'),
+          },
+          createdAt: new Date().toISOString(),
+        };
+
+        const regularKeyPath = path.join(
+          this.baseDir,
+          network,
+          'wallets',
+          `${walletId}.regular-key.json`
+        );
+        await this.atomicWrite(regularKeyPath, JSON.stringify(regularKeyFile, null, 2));
+
+        // Update wallet metadata to indicate regular key exists
+        walletFile.entry.metadata = {
+          ...walletFile.entry.metadata,
+          hasRegularKey: true,
+          customData: {
+            ...(walletFile.entry.metadata?.customData as Record<string, unknown>),
+            regularKeyAddress,
+            regularKeyStoredAt: new Date().toISOString(),
+          },
+        };
+        walletFile.entry.modifiedAt = new Date().toISOString();
+
+        await this.atomicWrite(filePath, JSON.stringify(walletFile, null, 2));
+        await this.updateIndex(network, walletFile.entry, 'update');
+      } finally {
+        kek.dispose();
+      }
+    } finally {
+      regularKeySecure.dispose();
+    }
+  }
+
+  /**
+   * Load the regular key for a wallet.
+   *
+   * @param walletId - Unique wallet identifier
+   * @param password - User password for decryption
+   * @returns SecureBuffer containing the regular key seed, or null if no regular key
+   */
+  async loadRegularKey(walletId: string, password: string): Promise<SecureBuffer | null> {
+    this.assertInitialized();
+
+    const { network, walletFile } = await this.findWallet(walletId);
+
+    // Check if regular key exists
+    const regularKeyPath = path.join(
+      this.baseDir,
+      network,
+      'wallets',
+      `${walletId}.regular-key.json`
+    );
+
+    let regularKeyFile: any;
+    try {
+      const content = await fs.readFile(regularKeyPath, 'utf-8');
+      regularKeyFile = JSON.parse(content);
+    } catch {
+      // No regular key stored
+      return null;
+    }
+
+    // Derive KEK and decrypt
+    const salt = Buffer.from(walletFile.entry.encryption.salt, 'base64');
+    const kek = await this.deriveKey(password, salt);
+
+    try {
+      const encryptedData = Buffer.from(regularKeyFile.encryptedKey.data, 'base64');
+      const iv = Buffer.from(regularKeyFile.encryptedKey.iv, 'base64');
+      const authTag = Buffer.from(regularKeyFile.encryptedKey.authTag, 'base64');
+
+      return await this.decrypt(encryptedData, kek, iv, authTag);
+    } finally {
+      kek.dispose();
+    }
+  }
+
   async exportBackup(
     walletId: string,
     password: string,
@@ -756,15 +1086,21 @@ export class LocalKeystore implements KeystoreProvider {
     try {
       const { walletFile } = await this.findWallet(walletId);
 
-      // Create backup payload
-      const payload = {
+      // Create backup payload using the key buffer directly
+      // Note: We minimize the time the seed exists as a string by building
+      // the JSON structure in a way that allows immediate zeroing.
+      const seedHex = key.getBuffer().toString('hex');
+      const payloadStr = JSON.stringify({
         version: 1,
         exportedAt: new Date().toISOString(),
         wallet: {
           entry: walletFile.entry,
-          seed: key.getBuffer().toString('hex'),
+          seed: seedHex,
         },
-      };
+      });
+
+      // Create buffer from payload and encrypt immediately
+      const payloadBuffer = Buffer.from(payloadStr);
 
       // Generate new salt for backup encryption
       const backupSalt = crypto.randomBytes(ARGON2_CONFIG.saltLength);
@@ -772,8 +1108,10 @@ export class LocalKeystore implements KeystoreProvider {
 
       try {
         // Encrypt backup payload
-        const payloadBuffer = Buffer.from(JSON.stringify(payload));
         const { encryptedData, iv, authTag } = await this.encrypt(payloadBuffer, backupKek);
+
+        // Zero the payload buffer immediately after encryption (contains seed)
+        payloadBuffer.fill(0);
 
         // Calculate checksum
         const checksum = crypto.createHash('sha256').update(encryptedData).digest('hex');
@@ -1161,15 +1499,17 @@ export class LocalKeystore implements KeystoreProvider {
   /**
    * Records successful authentication.
    */
-  private recordAuthSuccess(walletId: string): void {
+  private async recordAuthSuccess(walletId: string): Promise<void> {
     this.authAttempts.delete(walletId);
     this.lockouts.delete(walletId);
+    // Persist state changes to disk
+    await this.persistRateLimitState();
   }
 
   /**
    * Records failed authentication attempt.
    */
-  private recordAuthFailure(walletId: string): void {
+  private async recordAuthFailure(walletId: string): Promise<void> {
     const now = new Date();
     const windowStart = new Date(now.getTime() - RATE_LIMIT_CONFIG.windowSeconds * 1000);
 
@@ -1195,5 +1535,8 @@ export class LocalKeystore implements KeystoreProvider {
       const lockoutUntil = new Date(now.getTime() + duration * 1000);
       this.lockouts.set(walletId, lockoutUntil);
     }
+
+    // Persist state changes to disk
+    await this.persistRateLimitState();
   }
 }

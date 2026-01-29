@@ -68,9 +68,10 @@ export class SecureBuffer {
    * to prevent the original data from remaining in memory.
    *
    * @param data - Source buffer (will be zeroed)
+   * @param verify - If true, verify source was zeroed (default: false for performance)
    * @returns New SecureBuffer containing the copied data
    */
-  static from(data: Buffer): SecureBuffer {
+  static from(data: Buffer, verify: boolean = false): SecureBuffer {
     if (!Buffer.isBuffer(data)) {
       throw new Error('SecureBuffer.from requires a Buffer');
     }
@@ -83,6 +84,16 @@ export class SecureBuffer {
     data.copy(secure.buffer);
     // Zero the source buffer immediately
     data.fill(0);
+
+    // Optionally verify the source was zeroed
+    if (verify) {
+      const zeroBuffer = Buffer.alloc(data.length, 0);
+      if (!data.equals(zeroBuffer)) {
+        // This should not happen - indicates a serious issue
+        throw new Error('SecureBuffer: Source buffer zeroing verification failed');
+      }
+    }
+
     return secure;
   }
 

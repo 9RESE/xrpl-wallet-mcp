@@ -15,8 +15,8 @@ import type { WalletBalanceInput, WalletBalanceOutput } from '../schemas/index.j
  * Handle wallet_balance tool invocation.
  *
  * Process:
- * 1. Query XRPL for account info
- * 2. Calculate reserves (base + owner count)
+ * 1. Query XRPL for account info and server info
+ * 2. Calculate reserves using network-specific values
  * 3. Return balance, reserves, and available funds
  *
  * @param context - Service instances
@@ -38,15 +38,29 @@ export async function handleWalletBalance(
   }
 
   // Query XRPL for account info
-  const accountInfo = await xrplClient.getAccountInfo(wallet.network, input.wallet_address);
+  const accountInfo = await xrplClient.getAccountInfo(input.wallet_address);
 
-  // Calculate reserves (TEMP: using hardcoded values - should query from XRPL)
-  const baseReserve = BigInt('1000000'); // 1 XRP
-  const ownerReserve = BigInt('200000'); // 0.2 XRP per object
-  const ownerCount = BigInt(accountInfo.OwnerCount || 0);
+  // Query server info for current reserve requirements
+  let baseReserve = BigInt('10000000'); // 10 XRP default
+  let ownerReserve = BigInt('2000000'); // 2 XRP per object default
+
+  try {
+    const serverInfo = await xrplClient.getServerInfo();
+    if (serverInfo.validated_ledger) {
+      // Convert XRP to drops
+      baseReserve = BigInt(Math.floor(serverInfo.validated_ledger.reserve_base_xrp * 1_000_000));
+      ownerReserve = BigInt(Math.floor(serverInfo.validated_ledger.reserve_inc_xrp * 1_000_000));
+    }
+  } catch (error) {
+    // Use defaults if server info unavailable
+    console.warn('Could not fetch server info for reserves, using defaults');
+  }
+
+  // Calculate total reserve based on owner count
+  const ownerCount = BigInt(accountInfo.ownerCount || 0);
   const totalReserve = baseReserve + ownerReserve * ownerCount;
 
-  const balance = BigInt(accountInfo.Balance);
+  const balance = BigInt(accountInfo.balance);
   const available = balance > totalReserve ? balance - totalReserve : BigInt(0);
 
   return {
@@ -55,9 +69,9 @@ export async function handleWalletBalance(
     balance_xrp: dropsToXrp(balance.toString()),
     reserve_drops: totalReserve.toString(),
     available_drops: available.toString(),
-    sequence: accountInfo.Sequence,
-    regular_key_set: !!accountInfo.RegularKey,
-    signer_list: null, // TEMP: Would parse SignerList from account objects
+    sequence: accountInfo.sequence,
+    regular_key_set: !!(accountInfo as any).regularKey,
+    signer_list: null, // SignerList would require separate account_objects query
     policy_id: wallet.policyId,
     network: wallet.network,
     queried_at: new Date().toISOString(),

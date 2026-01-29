@@ -237,10 +237,20 @@ function formatError(error: unknown): ErrorResponse {
 
   // Handle Error instances
   if (error instanceof Error) {
+    // Only include stack traces in development mode (not in production)
+    const isDevelopment = process.env['NODE_ENV'] !== 'production';
+
+    // Log full error internally for debugging
+    console.error('[Server] Internal error:', error.message);
+    if (isDevelopment) {
+      console.error(error.stack);
+    }
+
     return {
       code: 'INTERNAL_ERROR',
       message: error.message,
-      details: { stack: error.stack },
+      // Only include stack trace in development to avoid information disclosure
+      details: isDevelopment ? { stack: error.stack } : undefined,
       timestamp,
     };
   }
@@ -249,7 +259,8 @@ function formatError(error: unknown): ErrorResponse {
   return {
     code: 'INTERNAL_ERROR',
     message: 'An unknown error occurred',
-    details: { error: String(error) },
+    // Don't expose raw error details in production
+    details: process.env['NODE_ENV'] !== 'production' ? { error: String(error) } : undefined,
     timestamp,
   };
 }

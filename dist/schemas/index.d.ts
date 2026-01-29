@@ -87,8 +87,14 @@ declare const TransactionTypeSchema: z.ZodEnum<["AccountDelete", "AccountSet", "
 declare const SequenceNumberSchema: z.ZodNumber;
 /**
  * Hexadecimal string validation (variable length)
- * Used for transaction blobs and other hex data
- * Transforms to uppercase for consistency
+ * Used for transaction blobs and other hex data.
+ *
+ * IMPORTANT: This schema transforms input to UPPERCASE for consistency.
+ * If you need case-preserving behavior, use HexStringRawSchema instead.
+ *
+ * @example
+ * Input:  "deadbeef"
+ * Output: "DEADBEEF"
  */
 declare const HexStringSchema: z.ZodEffects<z.ZodString, string, string>;
 /**

@@ -20,6 +20,7 @@ import type {
   TierFactor,
   LimitState,
   PolicyRule,
+  TransactionContext,
 } from './types.js';
 import {
   PolicyError,
@@ -30,11 +31,42 @@ import {
 } from './types.js';
 import { RuleEvaluator, checkBlocklist, isInAllowlist, type RuleEvaluatorOptions } from './evaluator.js';
 import { LimitTracker, type LimitTrackerOptions } from './limits.js';
-import type { AgentWalletPolicy, ApprovalTier } from '../schemas/index.js';
+import type { AgentWalletPolicy, ApprovalTier, TransactionType } from '../schemas/index.js';
 
 // ============================================================================
 // POLICY ENGINE INTERFACE
 // ============================================================================
+
+/**
+ * Simple transaction context for tool-based evaluation.
+ * Used by MCP tools that don't have full PolicyContext.
+ */
+export interface SimpleTransactionContext {
+  /** XRPL transaction type */
+  type: string;
+  /** Destination address */
+  destination?: string;
+  /** Amount in drops (as string) */
+  amount_drops?: string;
+  /** Memo content */
+  memo?: string;
+}
+
+/**
+ * Simplified evaluation result for tools.
+ */
+export interface SimpleEvaluationResult {
+  /** Tier (1=autonomous, 2=delayed, 3=cosign, 4=prohibited) */
+  tier: 1 | 2 | 3 | 4;
+  /** Reason for decision */
+  reason: string;
+  /** Policy violations (for prohibited) */
+  violations?: string[];
+  /** Warnings (non-blocking) */
+  warnings?: string[];
+  /** Whether transaction is allowed */
+  allowed: boolean;
+}
 
 /**
  * Core policy engine interface.
@@ -46,6 +78,24 @@ export interface IPolicyEngine {
    * This is the primary entry point for all transaction authorization.
    */
   evaluate(context: PolicyContext): PolicyResult;
+
+  /**
+   * Simplified transaction evaluation for MCP tools.
+   * Creates a PolicyContext internally from the simple transaction context.
+   *
+   * @param policyId - Policy ID (for validation)
+   * @param txContext - Simple transaction context from decoded transaction
+   * @returns Simplified evaluation result with tier and violations
+   */
+  evaluateTransaction(policyId: string, txContext: SimpleTransactionContext): Promise<SimpleEvaluationResult>;
+
+  /**
+   * Set or update the policy configuration.
+   * SECURITY: In production, this should require approval workflow.
+   *
+   * @param policy - New policy configuration
+   */
+  setPolicy(policy: AgentWalletPolicy): Promise<void>;
 
   /**
    * Get the SHA-256 hash of the currently loaded policy.
@@ -234,11 +284,13 @@ export class PolicyEngine implements IPolicyEngine {
         evaluationTimeMs: performance.now() - startTime,
       };
     } catch (error) {
-      // Log error with full details
+      // Log error with safe details only (no sensitive data)
       console.error('Policy evaluation error:', {
         correlationId: context.correlationId,
-        error,
+        errorType: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : String(error),
         transactionType: context.transaction.type,
+        // Never log amounts, addresses, or other transaction details
       });
 
       // Fail-secure: return prohibited on any error
@@ -635,6 +687,113 @@ export class PolicyEngine implements IPolicyEngine {
    */
   dispose(): void {
     this.limitTracker.dispose();
+  }
+
+  /**
+   * Simplified transaction evaluation for MCP tools.
+   * Creates a PolicyContext internally from the simple transaction context.
+   */
+  async evaluateTransaction(
+    policyId: string,
+    txContext: SimpleTransactionContext
+  ): Promise<SimpleEvaluationResult> {
+    // Validate policy ID matches (basic check)
+    const policyInfo = this.getPolicyInfo();
+    if (policyId !== policyInfo.name && policyId !== policyInfo.hash) {
+      // Policy mismatch is a warning, not a failure
+      console.warn(`Policy ID mismatch: expected ${policyInfo.name}, got ${policyId}`);
+    }
+
+    // Convert amount_drops to XRP
+    let amountXrp: number | undefined;
+    if (txContext.amount_drops) {
+      amountXrp = Number(BigInt(txContext.amount_drops)) / 1_000_000;
+    }
+
+    // Create full PolicyContext from simple context
+    // Build transaction context, only including defined properties
+    const transactionCtx: TransactionContext = {
+      type: txContext.type as TransactionType,
+    };
+    if (txContext.destination !== undefined) {
+      transactionCtx.destination = txContext.destination;
+    }
+    if (amountXrp !== undefined) {
+      transactionCtx.amount_xrp = amountXrp;
+    }
+    if (txContext.memo !== undefined) {
+      transactionCtx.memo = txContext.memo;
+    }
+
+    const fullContext: PolicyContext = {
+      transaction: transactionCtx,
+      wallet: {
+        address: '', // Not relevant for policy evaluation
+        network: this.policy.network,
+      },
+      timestamp: new Date(),
+      correlationId: `eval_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+    };
+
+    // Evaluate using the full engine
+    const result = this.evaluate(fullContext);
+
+    // Convert to simple result
+    const simpleResult: SimpleEvaluationResult = {
+      tier: result.tierNumeric,
+      reason: result.reason,
+      allowed: result.allowed,
+    };
+
+    // Add violations for prohibited tier
+    if (result.tier === 'prohibited') {
+      simpleResult.violations = [result.reason];
+      if (result.injectionDetected) {
+        simpleResult.violations.push('Potential prompt injection detected in memo');
+      }
+    }
+
+    // Add warnings from factors
+    if (result.factors && result.factors.length > 1) {
+      simpleResult.warnings = result.factors
+        .filter(f => f.tier !== result.tier)
+        .map(f => f.reason);
+    }
+
+    return simpleResult;
+  }
+
+  /**
+   * Set or update the policy configuration.
+   *
+   * NOTE: PolicyEngine is IMMUTABLE by design (ADR-003 security requirement).
+   * This method throws an error to prevent silent failures.
+   *
+   * To update a policy, you must:
+   * 1. Create a new PolicyEngine instance with the new policy
+   * 2. Replace the old engine atomically at the server level
+   * 3. Consider requiring human approval for policy changes
+   *
+   * @throws PolicyLoadError always - policies cannot be changed at runtime
+   */
+  async setPolicy(policy: AgentWalletPolicy): Promise<void> {
+    // PolicyEngine is immutable by design (security requirement per ADR-003).
+    // This prevents an LLM/agent from modifying its own policies at runtime.
+    //
+    // To change a policy:
+    // 1. Stop the server
+    // 2. Update the policy configuration file
+    // 3. Restart the server with the new policy
+    //
+    // Or implement a controlled reload mechanism at the server level that:
+    // 1. Creates a new PolicyEngine with the new policy
+    // 2. Swaps the engines atomically
+    // 3. Logs the change to the audit trail
+    throw new PolicyLoadError(
+      `Policy updates are not supported at runtime (ADR-003 immutability requirement). ` +
+        `Requested policy: ${policy.policy_id} v${policy.policy_version}. ` +
+        `To update policies, restart the server with the new policy configuration.`
+    );
   }
 
   // ============================================================================

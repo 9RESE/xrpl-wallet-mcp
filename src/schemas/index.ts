@@ -240,14 +240,20 @@ export const SequenceNumberSchema = z
 
 /**
  * Hexadecimal string validation (variable length)
- * Used for transaction blobs and other hex data
- * Transforms to uppercase for consistency
+ * Used for transaction blobs and other hex data.
+ *
+ * IMPORTANT: This schema transforms input to UPPERCASE for consistency.
+ * If you need case-preserving behavior, use HexStringRawSchema instead.
+ *
+ * @example
+ * Input:  "deadbeef"
+ * Output: "DEADBEEF"
  */
 export const HexStringSchema = z
   .string()
   .regex(/^[A-Fa-f0-9]*$/, 'Must be a valid hexadecimal string')
   .transform((val) => val.toUpperCase())
-  .describe('Hexadecimal string');
+  .describe('Hexadecimal string (normalized to uppercase)');
 
 /**
  * Raw hexadecimal string validation (no transform)

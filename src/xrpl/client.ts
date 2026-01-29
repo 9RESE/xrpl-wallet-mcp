@@ -193,6 +193,32 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * Wrap a promise with a timeout.
+ *
+ * @param promise - The promise to wrap
+ * @param ms - Timeout in milliseconds
+ * @param operation - Description of the operation (for error messages)
+ * @returns Promise that rejects with XRPLClientError if timeout exceeded
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, operation: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new XRPLClientError(`Operation timed out: ${operation}`, 'TIMEOUT', { operation, timeoutMs: ms }));
+    }, ms);
+
+    promise
+      .then((result) => {
+        clearTimeout(timer);
+        resolve(result);
+      })
+      .catch((error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+  });
+}
+
+/**
  * XRPL Client Wrapper
  *
  * Provides connection management, auto-reconnection, and transaction helpers
@@ -267,45 +293,55 @@ export class XRPLClientWrapper {
   }
 
   /**
-   * Reconnect with exponential backoff
+   * Reconnect with exponential backoff (iterative, not recursive)
    *
    * @throws {MaxReconnectAttemptsError} If max attempts exceeded
    */
   private async reconnect(): Promise<void> {
-    if (this.reconnectAttempts >= this.connectionConfig.maxReconnectAttempts) {
-      throw new MaxReconnectAttemptsError(this.reconnectAttempts);
-    }
+    // Iterative approach to avoid stack overflow
+    while (this.reconnectAttempts < this.connectionConfig.maxReconnectAttempts) {
+      // Calculate backoff delay
+      const delay = Math.min(
+        this.connectionConfig.reconnectDelay *
+          Math.pow(this.connectionConfig.reconnectBackoff, this.reconnectAttempts),
+        30000 // Max 30 seconds
+      );
 
-    // Calculate backoff delay
-    const delay = Math.min(
-      this.connectionConfig.reconnectDelay *
-        Math.pow(this.connectionConfig.reconnectBackoff, this.reconnectAttempts),
-      30000 // Max 30 seconds
-    );
+      await sleep(delay);
 
-    await sleep(delay);
+      this.reconnectAttempts++;
 
-    this.reconnectAttempts++;
+      try {
+        // Try backup URLs if available
+        if (this.reconnectAttempts > 1 && this.backupUrls.length > 0) {
+          this.currentUrlIndex = (this.currentUrlIndex + 1) % (this.backupUrls.length + 1);
+          const url =
+            this.currentUrlIndex === 0 ? this.nodeUrl : this.backupUrls[this.currentUrlIndex - 1]!;
 
-    try {
-      // Try backup URLs if available
-      if (this.reconnectAttempts > 1 && this.backupUrls.length > 0) {
-        this.currentUrlIndex = (this.currentUrlIndex + 1) % (this.backupUrls.length + 1);
-        const url =
-          this.currentUrlIndex === 0 ? this.nodeUrl : this.backupUrls[this.currentUrlIndex - 1]!;
+          // Create new client with backup URL
+          try {
+            await this.client.disconnect();
+          } catch {
+            // Ignore disconnect errors
+          }
+          this.client = new Client(url);
+        }
 
-        // Create new client with backup URL
-        await this.client.disconnect();
-        this.client = new Client(url);
+        await this.client.connect();
+        this.isConnected = true;
+        this.reconnectAttempts = 0;
+        return; // Success - exit the loop
+      } catch (error) {
+        // Continue to next iteration (retry)
+        console.warn(
+          `[XRPLClient] Reconnect attempt ${this.reconnectAttempts} failed:`,
+          error instanceof Error ? error.message : 'Unknown error'
+        );
       }
-
-      await this.client.connect();
-      this.isConnected = true;
-      this.reconnectAttempts = 0;
-    } catch (error) {
-      // Recursive retry
-      await this.reconnect();
     }
+
+    // All attempts exhausted
+    throw new MaxReconnectAttemptsError(this.reconnectAttempts);
   }
 
   /**
@@ -328,11 +364,16 @@ export class XRPLClientWrapper {
    * Get server information
    *
    * @returns Server information
+   * @throws {XRPLClientError} If request times out
    */
   public async getServerInfo(): Promise<ServerInfo> {
-    const response = await this.client.request({
-      command: 'server_info',
-    });
+    const response = await withTimeout(
+      this.client.request({
+        command: 'server_info',
+      }),
+      this.connectionConfig.requestTimeout,
+      'server_info'
+    );
 
     const info = response.result.info;
     return {
@@ -350,14 +391,19 @@ export class XRPLClientWrapper {
    * @param address - Account address
    * @returns Account information
    * @throws {AccountNotFoundError} If account doesn't exist
+   * @throws {XRPLClientError} If request times out
    */
   public async getAccountInfo(address: XRPLAddress): Promise<AccountInfo> {
     try {
-      const response = (await this.client.request({
-        command: 'account_info',
-        account: address,
-        ledger_index: 'validated',
-      })) as AccountInfoResponse;
+      const response = (await withTimeout(
+        this.client.request({
+          command: 'account_info',
+          account: address,
+          ledger_index: 'validated',
+        }),
+        this.connectionConfig.requestTimeout,
+        'account_info'
+      )) as AccountInfoResponse;
 
       const data = response.result.account_data;
       return {

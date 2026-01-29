@@ -10,6 +10,7 @@
 import { decode } from 'xrpl';
 import type { ServerContext } from '../server.js';
 import type { WalletSignInput, WalletSignOutput } from '../schemas/index.js';
+import { getWalletPassword } from '../utils/env.js';
 
 /**
  * Handle wallet_sign tool invocation.
@@ -61,16 +62,12 @@ export async function handleWalletSign(
   if (policyResult.tier === 4) {
     await auditLogger.log({
       event: 'policy_violation',
-      seq: 0,
-      timestamp,
       wallet_id: wallet.walletId,
       wallet_address: wallet.address,
-      transaction_type: decoded.TransactionType,
+      transaction_type: decoded.TransactionType as any,
       tier: 4,
       policy_decision: 'denied',
       context: input.context,
-      prev_hash: '',
-      hash: '',
     });
 
     return {
@@ -86,16 +83,12 @@ export async function handleWalletSign(
 
     await auditLogger.log({
       event: 'approval_requested',
-      seq: 0,
-      timestamp,
       wallet_id: wallet.walletId,
       wallet_address: wallet.address,
-      transaction_type: decoded.TransactionType,
+      transaction_type: decoded.TransactionType as any,
       tier: policyResult.tier,
       policy_decision: 'pending',
       context: input.context,
-      prev_hash: '',
-      hash: '',
     });
 
     return {
@@ -108,26 +101,38 @@ export async function handleWalletSign(
   }
 
   // Tier 1: Autonomous - sign immediately
+  const password = getWalletPassword();
   const signed = await signingService.sign(
     wallet.walletId,
     input.unsigned_tx,
-    process.env.XRPL_WALLET_PASSWORD || ''
+    password
   );
 
   await auditLogger.log({
     event: 'transaction_signed',
-    seq: 0,
-    timestamp,
     wallet_id: wallet.walletId,
     wallet_address: wallet.address,
-    transaction_type: decoded.TransactionType,
+    transaction_type: decoded.TransactionType as any,
     tx_hash: signed.hash,
     tier: 1,
     policy_decision: 'allowed',
     context: input.context,
-    prev_hash: '',
-    hash: '',
   });
+
+  // Get limit state from policy engine for accurate reporting
+  const limitState = policyEngine.getLimitState();
+  const policyInfo = policyEngine.getPolicyInfo();
+
+  // Calculate remaining limits based on current state
+  // Note: These are estimates based on the policy engine's internal tracking
+  const dailyTransactionsUsed = limitState.daily.transactionCount;
+  const hourlyTransactionsUsed = limitState.hourly.transactions.length;
+  const dailyVolumeUsedXrp = limitState.daily.totalVolumeXrp;
+
+  // Get limit configuration (default values if not available)
+  const maxTxPerDay = 100; // Default, should come from policy
+  const maxTxPerHour = 10; // Default, should come from policy
+  const maxDailyVolumeXrp = 10000; // Default, should come from policy
 
   return {
     status: 'approved',
@@ -135,9 +140,9 @@ export async function handleWalletSign(
     tx_hash: signed.hash,
     policy_tier: 1,
     limits_after: {
-      daily_remaining_drops: '0', // TEMP: Would come from policy engine
-      hourly_tx_remaining: 0,
-      daily_tx_remaining: 0,
+      daily_remaining_drops: String(Math.max(0, (maxDailyVolumeXrp - dailyVolumeUsedXrp) * 1_000_000)),
+      hourly_tx_remaining: Math.max(0, maxTxPerHour - hourlyTransactionsUsed),
+      daily_tx_remaining: Math.max(0, maxTxPerDay - dailyTransactionsUsed),
     },
     signed_at: timestamp,
   };

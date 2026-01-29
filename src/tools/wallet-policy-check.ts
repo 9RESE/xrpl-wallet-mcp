@@ -48,14 +48,22 @@ export async function handleWalletPolicyCheck(
     }
   );
 
-  // Get current limit status (TEMP: mock data)
+  // Get current limit status from policy engine
+  const limitState = policyEngine.getLimitState();
+
+  // Calculate actual limit values
+  // Note: Max values should ideally come from the policy configuration
+  const maxTxPerHour = 50; // Default from testnet policy
+  const maxTxPerDay = 200; // Default from testnet policy
+  const maxDailyVolumeXrp = 10000; // Default from testnet policy
+
   const limits = {
-    daily_volume_used_drops: '0',
-    daily_volume_limit_drops: '10000000000', // 10,000 XRP
-    hourly_tx_used: 0,
-    hourly_tx_limit: 10,
-    daily_tx_used: 0,
-    daily_tx_limit: 100,
+    daily_volume_used_drops: String(Math.floor(limitState.daily.totalVolumeXrp * 1_000_000)),
+    daily_volume_limit_drops: String(maxDailyVolumeXrp * 1_000_000),
+    hourly_tx_used: limitState.hourly.transactions.length,
+    hourly_tx_limit: maxTxPerHour,
+    daily_tx_used: limitState.daily.transactionCount,
+    daily_tx_limit: maxTxPerDay,
   };
 
   return {

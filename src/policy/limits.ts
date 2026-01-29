@@ -303,14 +303,30 @@ export class LimitTracker {
     }, 60 * 1000);
   }
 
+  /** Track disposal state */
+  private isDisposed: boolean = false;
+
   /**
    * Stop periodic checks (for cleanup).
    */
   dispose(): void {
+    if (this.isDisposed) {
+      return; // Already disposed
+    }
+
     if (this.resetInterval) {
       clearInterval(this.resetInterval);
       this.resetInterval = undefined;
     }
+
+    this.isDisposed = true;
+  }
+
+  /**
+   * Check if the tracker has been disposed.
+   */
+  get disposed(): boolean {
+    return this.isDisposed;
   }
 
   // ============================================================================

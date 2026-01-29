@@ -23,6 +23,7 @@ This directory contains Architecture Decision Records (ADRs) documenting the key
 | [ADR-008](ADR-008-integration-design.md) | Integration Design | Accepted | Composable MCP ecosystem (unsigned TX to signed TX pattern) |
 | [ADR-009](ADR-009-transaction-scope.md) | Transaction Scope | Accepted | Support ALL XRPL transaction types |
 | [ADR-010](ADR-010-network-isolation.md) | Network Isolation | Accepted | Separate keystores per network (mainnet/testnet/devnet) |
+| [ADR-011](ADR-011-security-remediation.md) | Security Remediation | Accepted | Phase 1 security hardening (19 issues fixed) |
 
 ## ADR Status Definitions
 
@@ -89,6 +90,7 @@ Each ADR addresses specific security requirements from the [Security Requirement
 | ADR-008 | Integration patterns |
 | ADR-009 | Transaction type policies |
 | ADR-010 | Network safety guardrails |
+| ADR-011 | AUTH-001, KEY-002, AUDIT-001, VAL-004 (security hardening) |
 
 ## Creating New ADRs
 
@@ -171,3 +173,4 @@ Use the following template when creating new ADRs:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-01-28 | Tech Lead | Initial ADR index with 10 ADRs |
+| 1.1.0 | 2026-01-28 | Code Review Agent | Added ADR-011 Security Remediation |

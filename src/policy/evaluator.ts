@@ -383,12 +383,46 @@ export class RuleEvaluator {
   }
 
   /**
+   * Check if a regex pattern is potentially vulnerable to ReDoS.
+   *
+   * Detects common ReDoS patterns:
+   * - Nested quantifiers: (a+)+, (a*)*
+   * - Overlapping alternation: (a|a)+
+   * - Exponential backtracking patterns
+   */
+  private isReDoSVulnerable(pattern: string): boolean {
+    // Patterns that indicate potential ReDoS vulnerability
+    const dangerousPatterns = [
+      /\([^)]*[+*][^)]*\)[+*]/, // Nested quantifiers: (a+)+, (.*)*
+      /\([^)]*\|[^)]*\)[+*]{2,}/, // Alternation with repeated quantifiers
+      /\(\.\*\)[+*]/, // (.*)+
+      /\(\.\+\)[+*]/, // (.+)+
+      /\[[^\]]*\][+*]{2,}[^\s]*\[[^\]]*\][+*]{2,}/, // Multiple char classes with quantifiers
+    ];
+
+    for (const dangerous of dangerousPatterns) {
+      if (dangerous.test(pattern)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * Match a value against a regex pattern.
    */
   private matchesRegex(value: string, pattern: string): boolean {
     // Get or compile regex
     let regex = this.regexCache.get(pattern);
     if (!regex) {
+      // Check for ReDoS vulnerability before compiling
+      if (this.isReDoSVulnerable(pattern)) {
+        throw new PolicyEvaluationError(
+          `Regex pattern rejected due to potential ReDoS vulnerability: ${pattern}`
+        );
+      }
+
       try {
         regex = new RegExp(pattern, 'i');
         this.regexCache.set(pattern, regex);

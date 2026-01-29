@@ -12,6 +12,7 @@
 This MCP (Model Context Protocol) server enables AI agents to autonomously manage XRPL wallets and sign transactions within configurable policy boundaries. It implements a tiered security model where low-risk operations execute immediately while high-value transactions require human oversight.
 
 > **Project Status**: ✅ **Phase 1 Implementation Complete** - All core modules implemented and tested (222 tests passing)
+> **Security Status**: ✅ **Security Review Complete** - 19 issues identified and remediated (see [ADR-011](./docs/architecture/09-decisions/ADR-011-security-remediation.md))
 
 ## The Problem
 
@@ -205,6 +206,23 @@ The policy engine includes defenses against prompt injection:
 - Policy rules are immutable at runtime (agent cannot self-modify)
 - Context field sanitized before audit logging
 
+### Security Hardening (v0.1.1)
+
+Following a comprehensive security review, the following hardening measures were implemented:
+
+| Area | Improvement |
+|------|-------------|
+| **Environment** | Required `XRPL_WALLET_PASSWORD` - fail-fast on missing config |
+| **Key Storage** | Consistent seed format (UTF-8) prevents cryptographic failures |
+| **Multi-Sign** | Cryptographic signature verification using ripple-keypairs |
+| **Audit Logs** | Fixed hash chain integrity for tamper detection |
+| **Key Rotation** | Regular keys now persisted and preferred over master key |
+| **Rate Limiting** | Lockout state persists across server restarts |
+| **ReDoS** | Pattern analysis prevents regex denial-of-service |
+| **Production** | Stack traces and logs sanitized for production deployment |
+
+See [ADR-011](./docs/architecture/09-decisions/ADR-011-security-remediation.md) for complete details.
+
 ## Documentation
 
 ### Architecture (Arc42)
@@ -216,7 +234,7 @@ The policy engine includes defenses against prompt injection:
 - [Runtime View](./docs/architecture/06-runtime-view.md) - Sequence diagrams
 - [Deployment](./docs/architecture/07-deployment-view.md) - Infrastructure
 - [Crosscutting](./docs/architecture/08-crosscutting.md) - Security, logging, errors
-- [ADRs](./docs/architecture/09-decisions/) - 10 architecture decisions
+- [ADRs](./docs/architecture/09-decisions/) - 11 architecture decisions
 
 ### Security
 - [Threat Model](./docs/security/threat-model.md) - STRIDE analysis, 20 threats

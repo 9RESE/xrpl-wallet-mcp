@@ -68,6 +68,8 @@ export {
   createPolicyEngine,
   createTestPolicy,
   type IPolicyEngine,
+  type SimpleTransactionContext,
+  type SimpleEvaluationResult,
 } from './engine.js';
 
 // Evaluator

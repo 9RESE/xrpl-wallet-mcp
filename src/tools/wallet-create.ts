@@ -9,6 +9,7 @@
 
 import type { ServerContext } from '../server.js';
 import type { WalletCreateInput, WalletCreateOutput } from '../schemas/index.js';
+import { getWalletPassword } from '../utils/env.js';
 
 /**
  * Handle wallet_create tool invocation.
@@ -32,6 +33,9 @@ export async function handleWalletCreate(
   // Store policy configuration
   await policyEngine.setPolicy(input.policy);
 
+  // Get wallet password (throws if not set)
+  const password = getWalletPassword();
+
   // Create wallet with policy reference
   const walletEntry = await keystore.createWallet(
     input.network,
@@ -41,7 +45,7 @@ export async function handleWalletCreate(
     },
     {
       name: input.wallet_name,
-      password: process.env.XRPL_WALLET_PASSWORD || '', // TEMP: env-based password
+      password,
       algorithm: 'ed25519', // Recommended for XRPL
     }
   );
@@ -49,20 +53,16 @@ export async function handleWalletCreate(
   // Generate master key backup (encrypted)
   const backup = await keystore.exportBackup(
     walletEntry.walletId,
-    process.env.XRPL_WALLET_PASSWORD || '',
+    password,
     'encrypted-json'
   );
 
   // Audit wallet creation
   await auditLogger.log({
     event: 'wallet_created',
-    seq: 0,
-    timestamp: new Date().toISOString(),
     wallet_id: walletEntry.walletId,
     wallet_address: walletEntry.address,
     context: `Policy: ${input.policy.policy_id}`,
-    prev_hash: '',
-    hash: '',
   });
 
   return {

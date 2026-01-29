@@ -997,6 +997,35 @@ declare class LimitExceededError extends PolicyError {
  */
 
 /**
+ * Simple transaction context for tool-based evaluation.
+ * Used by MCP tools that don't have full PolicyContext.
+ */
+interface SimpleTransactionContext {
+    /** XRPL transaction type */
+    type: string;
+    /** Destination address */
+    destination?: string;
+    /** Amount in drops (as string) */
+    amount_drops?: string;
+    /** Memo content */
+    memo?: string;
+}
+/**
+ * Simplified evaluation result for tools.
+ */
+interface SimpleEvaluationResult {
+    /** Tier (1=autonomous, 2=delayed, 3=cosign, 4=prohibited) */
+    tier: 1 | 2 | 3 | 4;
+    /** Reason for decision */
+    reason: string;
+    /** Policy violations (for prohibited) */
+    violations?: string[];
+    /** Warnings (non-blocking) */
+    warnings?: string[];
+    /** Whether transaction is allowed */
+    allowed: boolean;
+}
+/**
  * Core policy engine interface.
  * All evaluation methods are synchronous and deterministic.
  */
@@ -1006,6 +1035,22 @@ interface IPolicyEngine {
      * This is the primary entry point for all transaction authorization.
      */
     evaluate(context: PolicyContext): PolicyResult;
+    /**
+     * Simplified transaction evaluation for MCP tools.
+     * Creates a PolicyContext internally from the simple transaction context.
+     *
+     * @param policyId - Policy ID (for validation)
+     * @param txContext - Simple transaction context from decoded transaction
+     * @returns Simplified evaluation result with tier and violations
+     */
+    evaluateTransaction(policyId: string, txContext: SimpleTransactionContext): Promise<SimpleEvaluationResult>;
+    /**
+     * Set or update the policy configuration.
+     * SECURITY: In production, this should require approval workflow.
+     *
+     * @param policy - New policy configuration
+     */
+    setPolicy(policy: AgentWalletPolicy): Promise<void>;
     /**
      * Get the SHA-256 hash of the currently loaded policy.
      * Used for integrity verification and audit logging.
@@ -1134,6 +1179,25 @@ declare class PolicyEngine implements IPolicyEngine {
      */
     dispose(): void;
     /**
+     * Simplified transaction evaluation for MCP tools.
+     * Creates a PolicyContext internally from the simple transaction context.
+     */
+    evaluateTransaction(policyId: string, txContext: SimpleTransactionContext): Promise<SimpleEvaluationResult>;
+    /**
+     * Set or update the policy configuration.
+     *
+     * NOTE: PolicyEngine is IMMUTABLE by design (ADR-003 security requirement).
+     * This method throws an error to prevent silent failures.
+     *
+     * To update a policy, you must:
+     * 1. Create a new PolicyEngine instance with the new policy
+     * 2. Replace the old engine atomically at the server level
+     * 3. Consider requiring human approval for policy changes
+     *
+     * @throws PolicyLoadError always - policies cannot be changed at runtime
+     */
+    setPolicy(policy: AgentWalletPolicy): Promise<void>;
+    /**
      * Compute SHA-256 hash of policy.
      */
     private computeHash;
@@ -1236,6 +1300,15 @@ declare class RuleEvaluator {
      * Evaluate an operator.
      */
     private evaluateOperator;
+    /**
+     * Check if a regex pattern is potentially vulnerable to ReDoS.
+     *
+     * Detects common ReDoS patterns:
+     * - Nested quantifiers: (a+)+, (a*)*
+     * - Overlapping alternation: (a|a)+
+     * - Exponential backtracking patterns
+     */
+    private isReDoSVulnerable;
     /**
      * Match a value against a regex pattern.
      */
@@ -1361,10 +1434,16 @@ declare class LimitTracker {
      * Schedule periodic check for daily reset.
      */
     private schedulePeriodicCheck;
+    /** Track disposal state */
+    private isDisposed;
     /**
      * Stop periodic checks (for cleanup).
      */
     dispose(): void;
+    /**
+     * Check if the tracker has been disposed.
+     */
+    get disposed(): boolean;
     /**
      * Get current daily XRP volume.
      */
@@ -1481,9 +1560,10 @@ declare class SecureBuffer {
      * to prevent the original data from remaining in memory.
      *
      * @param data - Source buffer (will be zeroed)
+     * @param verify - If true, verify source was zeroed (default: false for performance)
      * @returns New SecureBuffer containing the copied data
      */
-    static from(data: Buffer): SecureBuffer;
+    static from(data: Buffer, verify?: boolean): SecureBuffer;
     /**
      * Gets the buffer contents for use in cryptographic operations.
      *
@@ -2214,7 +2294,18 @@ declare class LocalKeystore implements KeystoreProvider {
     private fileLock;
     private authAttempts;
     private lockouts;
+    private rateLimitStatePath;
     initialize(config: KeystoreConfig): Promise<void>;
+    /**
+     * Persist rate limiting state to disk.
+     * Called after auth attempts and lockouts change.
+     */
+    private persistRateLimitState;
+    /**
+     * Restore rate limiting state from disk.
+     * Called during initialization.
+     */
+    private restoreRateLimitState;
     healthCheck(): Promise<KeystoreHealthResult>;
     close(): Promise<void>;
     createWallet(network: XRPLNetwork, policy: WalletPolicy, options?: WalletCreateOptions): Promise<WalletEntry>;
@@ -2225,6 +2316,26 @@ declare class LocalKeystore implements KeystoreProvider {
     deleteWallet(walletId: string, password: string): Promise<void>;
     rotateKey(walletId: string, currentPassword: string, newPassword: string): Promise<void>;
     updateMetadata(walletId: string, updates: Partial<WalletMetadata>): Promise<void>;
+    /**
+     * Store a regular key for a wallet.
+     *
+     * This allows the wallet to sign transactions with the regular key
+     * instead of the master key, providing better security through key rotation.
+     *
+     * @param walletId - Unique wallet identifier
+     * @param regularKeySeed - Regular key seed (base58 encoded)
+     * @param regularKeyAddress - Regular key's XRPL address
+     * @param password - User password for encryption
+     */
+    storeRegularKey(walletId: string, regularKeySeed: string, regularKeyAddress: string, password: string): Promise<void>;
+    /**
+     * Load the regular key for a wallet.
+     *
+     * @param walletId - Unique wallet identifier
+     * @param password - User password for decryption
+     * @returns SecureBuffer containing the regular key seed, or null if no regular key
+     */
+    loadRegularKey(walletId: string, password: string): Promise<SecureBuffer | null>;
     exportBackup(walletId: string, password: string, format: BackupFormat): Promise<EncryptedBackup>;
     importBackup(backup: EncryptedBackup, password: string, options?: ImportOptions): Promise<WalletEntry>;
     private assertInitialized;
@@ -2670,7 +2781,7 @@ declare class XRPLClientWrapper {
      */
     disconnect(): Promise<void>;
     /**
-     * Reconnect with exponential backoff
+     * Reconnect with exponential backoff (iterative, not recursive)
      *
      * @throws {MaxReconnectAttemptsError} If max attempts exceeded
      */
@@ -2685,6 +2796,7 @@ declare class XRPLClientWrapper {
      * Get server information
      *
      * @returns Server information
+     * @throws {XRPLClientError} If request times out
      */
     getServerInfo(): Promise<ServerInfo>;
     /**
@@ -2693,6 +2805,7 @@ declare class XRPLClientWrapper {
      * @param address - Account address
      * @returns Account information
      * @throws {AccountNotFoundError} If account doesn't exist
+     * @throws {XRPLClientError} If request times out
      */
     getAccountInfo(address: XRPLAddress): Promise<AccountInfo>;
     /**
@@ -3175,6 +3288,20 @@ declare class MultiSignOrchestrator {
      * @internal
      */
     expire(requestId: string): Promise<MultiSignRequest>;
+    /**
+     * Validate a multi-signature cryptographically.
+     *
+     * Verifies that:
+     * 1. The signature blob is a valid signed transaction
+     * 2. The signer in the blob matches the claimed signer address
+     * 3. The signature covers the expected unsigned transaction
+     *
+     * @param signatureBlob - Signed transaction blob from the signer
+     * @param expectedSigner - Expected signer's XRPL address
+     * @param unsignedBlob - Original unsigned transaction blob
+     * @returns Validation result with reason if invalid
+     */
+    private validateSignature;
     private extractAmount;
     private extractDestination;
     private notifySigners;
@@ -3216,6 +3343,17 @@ declare class SigningError extends Error {
     constructor(code: string, message: string, details?: unknown | undefined);
 }
 /**
+ * Configuration options for SigningService.
+ */
+interface SigningServiceOptions {
+    /**
+     * If true, reject unknown transaction types instead of warning.
+     * Recommended for production to avoid signing experimental/unknown transactions.
+     * Default: false (warn only)
+     */
+    strictTransactionTypes?: boolean;
+}
+/**
  * SigningService - Orchestrates secure transaction signing.
  *
  * Responsibilities:
@@ -3250,7 +3388,8 @@ declare class SigningService {
     private readonly keystore;
     private readonly auditLogger;
     private readonly multiSignOrchestrator?;
-    constructor(keystore: KeystoreProvider, auditLogger: AuditLogger, multiSignOrchestrator?: MultiSignOrchestrator | undefined);
+    private readonly options;
+    constructor(keystore: KeystoreProvider, auditLogger: AuditLogger, multiSignOrchestrator?: MultiSignOrchestrator | undefined, options?: SigningServiceOptions);
     /**
      * Sign a transaction with a wallet's private key.
      *
@@ -3363,4 +3502,4 @@ declare function createServer(context: ServerContext, config?: ServerConfig): Se
  */
 declare function runServer(context: ServerContext, config?: ServerConfig): Promise<void>;
 
-export { AES_CONFIG, ARGON2_CONFIG, type AccountInfo, AccountNotFoundError, type ActorType, AgentWalletPolicy, type AlwaysCondition, type AndCondition, ApprovalTier, type AuditConfig, AuditEventType, AuditLogEntry, type AuditLogInput, AuditLogInputSchema, type AuditLogQuery, AuditLogger, type AuditLoggerConfig, type AuditLoggerOptions, type AuditSeverity, type AuditStorageStats, AuthenticationError, type BackupFormat, BackupFormatError, type BlocklistCheckResult, type ChainError, type ChainErrorType, type ChainState, ChainStateSchema, type ChainVerificationResult, type CompiledRule, type Condition, type ConditionEvaluator, type ConnectionConfig, ConnectionError, DEFAULT_AUDIT_LOGGER_CONFIG, DEFAULT_CONNECTION_CONFIG, DEFAULT_PASSWORD_POLICY, EXPLORER_URLS, type EncryptedBackup, type EncryptionMetadata, type EntropySource, type EventCategory, type ExplorerUrls, FAUCET_CONFIG, type FaucetConfig, type FieldCondition, GENESIS_CONSTANT, HMAC_ALGORITHM, HMAC_KEY_LENGTH, type HSMConfig, HashChain, type HashableEntry, HmacKeySchema, type IHmacKeyProvider, type IPolicyEngine, type ImportOptions, type InternalPolicy, InvalidKeyError, type KdfParams, type KeyAlgorithm, KeyDecryptionError, KeyEncryptionError, KeystoreCapacityError, type KeystoreConfig, KeystoreError, type KeystoreErrorCode, type KeystoreHealthResult, KeystoreInitializationError, type KeystoreProvider, type KeystoreProviderType, KeystoreReadError, KeystoreWriteError, type LimitCheckResult, type LimitConfig, LimitExceededError, type LimitState, LimitTracker, type LimitTrackerOptions, LocalKeystore, MaxReconnectAttemptsError, type MultiSignCompleteResult, MultiSignError, MultiSignOrchestrator, type MultiSignRequest, type MultiSignStatus, type MultiSignStore, NETWORK_ENDPOINTS, Network, type NetworkEndpoints, NetworkMismatchError, type NotCondition, type NotificationService, type OperationResult, type Operator, type OrCondition, type PasswordPolicy, type PolicyContext, PolicyEngine, type PolicyEngineOptions, PolicyError, PolicyEvaluationError, type PolicyInfo, PolicyIntegrityError, PolicyLoadError, type PolicyResult, type PolicyRule, PolicyValidationError, ProviderUnavailableError, type RuleAction, RuleEvaluator, type RuleEvaluatorOptions, type RuleResult, SecureBuffer, type ServerConfig, type ServerContext, type ServerInfo, type SignedTransaction, type SignerConfig, type SignerListConfig, type SignerState, SigningError, SigningService, type SubmitOptions, type Tier, type TierFactor, type TransactionContext, TransactionHash, TransactionTimeoutError, TransactionType, type TxHistoryOptions, type ValueReference, type VerificationOptions, VerificationOptionsSchema, type WaitOptions, type WalletContext, type WalletCreateOptions, type WalletEntry, WalletExistsError, type WalletMetadata, WalletNotFoundError, type WalletPolicy, type WalletStatus, type WalletSummary, WeakPasswordError, XRPLAddress, type XRPLClientConfig, XRPLClientError, XRPLClientWrapper, type XRPLNetwork, type XRPLTransactionResult, checkBlocklist, computeStandaloneHash, createLimitTracker, createMemoryKeyProvider, createPolicyEngine, createServer, createTestPolicy, generateHmacKey, getAccountExplorerUrl, getBackupWebSocketUrls, getConnectionConfig, getDefaultAuditDir, getFaucetUrl, getLedgerExplorerUrl, getTransactionCategory, getTransactionExplorerUrl, getWebSocketUrl, isFaucetAvailable, isInAllowlist, isKeystoreError, isKeystoreErrorCode, isValidHmacKey, numericToTier, runServer, sanitizeForLogging, tierToNumeric };
+export { AES_CONFIG, ARGON2_CONFIG, type AccountInfo, AccountNotFoundError, type ActorType, AgentWalletPolicy, type AlwaysCondition, type AndCondition, ApprovalTier, type AuditConfig, AuditEventType, AuditLogEntry, type AuditLogInput, AuditLogInputSchema, type AuditLogQuery, AuditLogger, type AuditLoggerConfig, type AuditLoggerOptions, type AuditSeverity, type AuditStorageStats, AuthenticationError, type BackupFormat, BackupFormatError, type BlocklistCheckResult, type ChainError, type ChainErrorType, type ChainState, ChainStateSchema, type ChainVerificationResult, type CompiledRule, type Condition, type ConditionEvaluator, type ConnectionConfig, ConnectionError, DEFAULT_AUDIT_LOGGER_CONFIG, DEFAULT_CONNECTION_CONFIG, DEFAULT_PASSWORD_POLICY, EXPLORER_URLS, type EncryptedBackup, type EncryptionMetadata, type EntropySource, type EventCategory, type ExplorerUrls, FAUCET_CONFIG, type FaucetConfig, type FieldCondition, GENESIS_CONSTANT, HMAC_ALGORITHM, HMAC_KEY_LENGTH, type HSMConfig, HashChain, type HashableEntry, HmacKeySchema, type IHmacKeyProvider, type IPolicyEngine, type ImportOptions, type InternalPolicy, InvalidKeyError, type KdfParams, type KeyAlgorithm, KeyDecryptionError, KeyEncryptionError, KeystoreCapacityError, type KeystoreConfig, KeystoreError, type KeystoreErrorCode, type KeystoreHealthResult, KeystoreInitializationError, type KeystoreProvider, type KeystoreProviderType, KeystoreReadError, KeystoreWriteError, type LimitCheckResult, type LimitConfig, LimitExceededError, type LimitState, LimitTracker, type LimitTrackerOptions, LocalKeystore, MaxReconnectAttemptsError, type MultiSignCompleteResult, MultiSignError, MultiSignOrchestrator, type MultiSignRequest, type MultiSignStatus, type MultiSignStore, NETWORK_ENDPOINTS, Network, type NetworkEndpoints, NetworkMismatchError, type NotCondition, type NotificationService, type OperationResult, type Operator, type OrCondition, type PasswordPolicy, type PolicyContext, PolicyEngine, type PolicyEngineOptions, PolicyError, PolicyEvaluationError, type PolicyInfo, PolicyIntegrityError, PolicyLoadError, type PolicyResult, type PolicyRule, PolicyValidationError, ProviderUnavailableError, type RuleAction, RuleEvaluator, type RuleEvaluatorOptions, type RuleResult, SecureBuffer, type ServerConfig, type ServerContext, type ServerInfo, type SignedTransaction, type SignerConfig, type SignerListConfig, type SignerState, SigningError, SigningService, type SimpleEvaluationResult, type SimpleTransactionContext, type SubmitOptions, type Tier, type TierFactor, type TransactionContext, TransactionHash, TransactionTimeoutError, TransactionType, type TxHistoryOptions, type ValueReference, type VerificationOptions, VerificationOptionsSchema, type WaitOptions, type WalletContext, type WalletCreateOptions, type WalletEntry, WalletExistsError, type WalletMetadata, WalletNotFoundError, type WalletPolicy, type WalletStatus, type WalletSummary, WeakPasswordError, XRPLAddress, type XRPLClientConfig, XRPLClientError, XRPLClientWrapper, type XRPLNetwork, type XRPLTransactionResult, checkBlocklist, computeStandaloneHash, createLimitTracker, createMemoryKeyProvider, createPolicyEngine, createServer, createTestPolicy, generateHmacKey, getAccountExplorerUrl, getBackupWebSocketUrls, getConnectionConfig, getDefaultAuditDir, getFaucetUrl, getLedgerExplorerUrl, getTransactionCategory, getTransactionExplorerUrl, getWebSocketUrl, isFaucetAvailable, isInAllowlist, isKeystoreError, isKeystoreErrorCode, isValidHmacKey, numericToTier, runServer, sanitizeForLogging, tierToNumeric };

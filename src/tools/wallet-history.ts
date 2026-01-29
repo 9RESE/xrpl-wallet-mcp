@@ -8,13 +8,13 @@
  */
 
 import type { ServerContext } from '../server.js';
-import type { WalletHistoryInput, WalletHistoryOutput } from '../schemas/index.js';
+import type { WalletHistoryInput, WalletHistoryOutput, TransactionHistoryEntry } from '../schemas/index.js';
 
 /**
  * Handle wallet_history tool invocation.
  *
  * Queries XRPL for transaction history and returns
- * formatted entries with policy tier information.
+ * formatted entries with available information.
  *
  * @param context - Service instances
  * @param input - Validated history request
@@ -34,33 +34,50 @@ export async function handleWalletHistory(
     throw new Error(`Wallet not found: ${input.wallet_address}`);
   }
 
-  // Query XRPL for transaction history
-  const txHistory = await xrplClient.getTransactionHistory(
-    wallet.network,
+  // Query XRPL for transaction history using getAccountTransactions
+  const rawTransactions = await xrplClient.getAccountTransactions(
     input.wallet_address,
     {
       limit: input.limit || 20,
-      marker: input.marker,
     }
   );
 
   // Map to output format
-  const transactions = txHistory.transactions.map((tx) => ({
-    hash: tx.hash,
-    type: tx.tx.TransactionType,
-    amount_drops: 'Amount' in tx.tx && typeof tx.tx.Amount === 'string' ? tx.tx.Amount : undefined,
-    destination: 'Destination' in tx.tx ? (tx.tx.Destination as string) : undefined,
-    timestamp: new Date((tx.close_time_iso || '')).toISOString(),
-    policy_tier: 1 as const, // TEMP: Would come from audit log
-    context: undefined, // TEMP: Would come from audit log
-    ledger_index: tx.ledger_index || 0,
-    success: tx.meta?.TransactionResult === 'tesSUCCESS',
-  }));
+  const transactions: TransactionHistoryEntry[] = rawTransactions.map((tx: any) => {
+    // Extract transaction details
+    const txData = tx.tx || tx;
+    const meta = tx.meta || {};
 
+    // Determine transaction result
+    const resultCode = typeof meta === 'object' && meta.TransactionResult
+      ? meta.TransactionResult
+      : 'unknown';
+
+    return {
+      hash: txData.hash || tx.hash || '',
+      type: txData.TransactionType || 'Unknown',
+      amount_drops: 'Amount' in txData && typeof txData.Amount === 'string'
+        ? txData.Amount
+        : undefined,
+      destination: 'Destination' in txData
+        ? (txData.Destination as string)
+        : undefined,
+      timestamp: txData.date
+        ? new Date((txData.date + 946684800) * 1000).toISOString() // XRPL epoch starts 2000-01-01
+        : new Date().toISOString(),
+      policy_tier: 1 as const, // Historical transactions don't have policy tier info
+      context: undefined, // Would need to cross-reference with audit log
+      ledger_index: txData.ledger_index || tx.ledger_index || 0,
+      success: resultCode === 'tesSUCCESS',
+    };
+  });
+
+  // Note: XRPL pagination uses markers, but getAccountTransactions
+  // may not return a marker in all cases
   return {
     address: input.wallet_address,
     transactions,
-    marker: txHistory.marker,
-    has_more: !!txHistory.marker,
+    marker: undefined, // Pagination marker if available
+    has_more: transactions.length >= (input.limit || 20),
   };
 }

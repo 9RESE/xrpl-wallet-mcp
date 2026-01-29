@@ -53,6 +53,22 @@ export class SigningError extends Error {
 }
 
 // ============================================================================
+// SIGNING SERVICE OPTIONS
+// ============================================================================
+
+/**
+ * Configuration options for SigningService.
+ */
+export interface SigningServiceOptions {
+  /**
+   * If true, reject unknown transaction types instead of warning.
+   * Recommended for production to avoid signing experimental/unknown transactions.
+   * Default: false (warn only)
+   */
+  strictTransactionTypes?: boolean;
+}
+
+// ============================================================================
 // SIGNING SERVICE
 // ============================================================================
 
@@ -88,11 +104,18 @@ export class SigningError extends Error {
  * ```
  */
 export class SigningService {
+  private readonly options: Required<SigningServiceOptions>;
+
   constructor(
     private readonly keystore: KeystoreProvider,
     private readonly auditLogger: AuditLogger,
-    private readonly multiSignOrchestrator?: MultiSignOrchestrator
-  ) {}
+    private readonly multiSignOrchestrator?: MultiSignOrchestrator,
+    options?: SigningServiceOptions
+  ) {
+    this.options = {
+      strictTransactionTypes: options?.strictTransactionTypes ?? false,
+    };
+  }
 
   /**
    * Sign a transaction with a wallet's private key.
@@ -149,9 +172,25 @@ export class SigningService {
       // Step 3: Load wallet metadata
       const walletEntry = await this.keystore.getWallet(walletId);
 
-      // Step 4: Load encrypted key from keystore (returns SecureBuffer)
+      // Step 4: Try to load regular key first (more secure), fall back to master key
+      let usingRegularKey = false;
       try {
-        secureKey = await this.keystore.loadKey(walletId, password);
+        // Check if keystore supports regular keys and has one stored
+        if ('loadRegularKey' in this.keystore) {
+          const keystoreWithRegularKey = this.keystore as typeof this.keystore & {
+            loadRegularKey: (walletId: string, password: string) => Promise<SecureBuffer | null>;
+          };
+          const regularKey = await keystoreWithRegularKey.loadRegularKey(walletId, password);
+          if (regularKey) {
+            secureKey = regularKey;
+            usingRegularKey = true;
+          }
+        }
+
+        // Fall back to master key if no regular key
+        if (!secureKey) {
+          secureKey = await this.keystore.loadKey(walletId, password);
+        }
       } catch (error) {
         // Audit failed authentication
         await this.auditLogger.log({
@@ -175,8 +214,9 @@ export class SigningService {
         const seedString = secureKey.getBuffer().toString('utf-8');
         wallet = Wallet.fromSeed(seedString);
 
-        // Verify address matches
-        if (wallet.address !== walletEntry.address) {
+        // For master key, verify address matches
+        // For regular key, address will be different (that's expected)
+        if (!usingRegularKey && wallet.address !== walletEntry.address) {
           throw new Error('Wallet address mismatch - keystore corruption detected');
         }
       } catch (error) {
@@ -366,8 +406,21 @@ export class SigningService {
     ];
 
     if (!validTypes.includes(transaction.TransactionType)) {
-      // Log warning but don't fail - new transaction types may be added
-      console.warn(`Unknown TransactionType: ${transaction.TransactionType}`);
+      if (this.options.strictTransactionTypes) {
+        // Strict mode: reject unknown transaction types
+        throw new SigningError(
+          'UNKNOWN_TRANSACTION_TYPE',
+          `Unknown transaction type: ${transaction.TransactionType}. ` +
+            `Enable experimental transaction support by setting strictTransactionTypes: false`,
+          { transaction_type: transaction.TransactionType }
+        );
+      } else {
+        // Permissive mode: log warning but allow
+        console.warn(
+          `[SigningService] Unknown TransactionType: ${transaction.TransactionType}. ` +
+            `This may be an experimental or new transaction type.`
+        );
+      }
     }
   }
 }

@@ -1,12 +1,37 @@
 #!/usr/bin/env node
 import { z } from 'zod';
 
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
   get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
 }) : x)(function(x) {
   if (typeof require !== "undefined") return require.apply(this, arguments);
   throw Error('Dynamic require of "' + x + '" is not supported');
 });
+var __commonJS = (cb, mod) => function __require2() {
+  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 var MAX_DROPS = BigInt("100000000000000000");
 BigInt("10000000");
 var XRPL_TRANSACTION_TYPES = [
@@ -102,7 +127,7 @@ var PublicKeySchema = z.string().length(66, "Public key must be exactly 66 chara
 var NetworkSchema = z.enum(["mainnet", "testnet", "devnet"]).describe("XRPL network environment");
 var TransactionTypeSchema = z.enum(XRPL_TRANSACTION_TYPES).describe("XRPL transaction type");
 var SequenceNumberSchema = z.number().int().min(1).max(4294967295).describe("XRPL account sequence number");
-var HexStringSchema = z.string().regex(/^[A-Fa-f0-9]*$/, "Must be a valid hexadecimal string").transform((val) => val.toUpperCase()).describe("Hexadecimal string");
+var HexStringSchema = z.string().regex(/^[A-Fa-f0-9]*$/, "Must be a valid hexadecimal string").transform((val) => val.toUpperCase()).describe("Hexadecimal string (normalized to uppercase)");
 var HexStringRawSchema = z.string().regex(/^[A-Fa-f0-9]*$/, "Must be a valid hexadecimal string").describe("Hexadecimal string (raw)");
 var UnsignedTransactionBlobSchema = z.string().min(20, "Transaction blob too short").max(1e6, "Transaction blob exceeds maximum size").regex(/^[A-Fa-f0-9]+$/, "Transaction blob must be hexadecimal").describe("Unsigned XRPL transaction blob (hex-encoded)");
 var SignedTransactionBlobSchema = z.string().min(100, "Signed transaction blob too short").max(1e6, "Transaction blob exceeds maximum size").regex(/^[A-Fa-f0-9]+$/, "Transaction blob must be hexadecimal").describe("Signed XRPL transaction blob (hex-encoded)");
@@ -1124,6 +1149,6 @@ var OutputSchemas = {
   error: ErrorResponseSchema
 };
 
-export { AgentWalletPolicySchema, ApprovalTierSchema, AuditEventTypeSchema, AuditLogEntrySchema, DecodedTransactionSchema, DestinationModeSchema, DropsAmountOptionalZeroSchema, DropsAmountSchema, ErrorCodeSchema, ErrorResponseSchema, HexStringRawSchema, HexStringSchema, InputSchemas, LedgerIndexSchema, LimitStatusSchema, NetworkConfigInputSchema, NetworkConfigOutputSchema, NetworkSchema, NotificationEventSchema, OutputSchemas, PaginationMarkerSchema, PolicyDestinationsSchema, PolicyEscalationSchema, PolicyLimitsSchema, PolicyNotificationsSchema, PolicySetInputSchema, PolicySetOutputSchema, PolicyTimeControlsSchema, PolicyTransactionTypesSchema, PolicyViolationSchema, PublicKeySchema, RemainingLimitsSchema, SequenceNumberSchema, SignedTransactionBlobSchema, SignerEntrySchema, TimestampSchema, TransactionHashSchema, TransactionHistoryEntrySchema, TransactionResultSchema, TransactionTypeSchema, TxDecodeInputSchema, TxDecodeOutputSchema, TxSubmitInputSchema, TxSubmitOutputSchema, UnsignedTransactionBlobSchema, WalletBalanceInputSchema, WalletBalanceOutputSchema, WalletCreateInputSchema, WalletCreateOutputSchema, WalletFundInputSchema, WalletFundOutputSchema, WalletHistoryInputSchema, WalletHistoryOutputSchema, WalletIdSchema, WalletListEntrySchema, WalletListInputSchema, WalletListOutputSchema, WalletNameSchema, WalletPolicyCheckInputSchema, WalletPolicyCheckOutputSchema, WalletRotateInputSchema, WalletRotateOutputSchema, WalletSignApprovedOutputSchema, WalletSignInputSchema, WalletSignOutputSchema, WalletSignPendingOutputSchema, WalletSignRejectedOutputSchema, XRPLAddressSchema, __require };
-//# sourceMappingURL=chunk-WARGRSMR.js.map
-//# sourceMappingURL=chunk-WARGRSMR.js.map
+export { AgentWalletPolicySchema, ApprovalTierSchema, AuditEventTypeSchema, AuditLogEntrySchema, DecodedTransactionSchema, DestinationModeSchema, DropsAmountOptionalZeroSchema, DropsAmountSchema, ErrorCodeSchema, ErrorResponseSchema, HexStringRawSchema, HexStringSchema, InputSchemas, LedgerIndexSchema, LimitStatusSchema, NetworkConfigInputSchema, NetworkConfigOutputSchema, NetworkSchema, NotificationEventSchema, OutputSchemas, PaginationMarkerSchema, PolicyDestinationsSchema, PolicyEscalationSchema, PolicyLimitsSchema, PolicyNotificationsSchema, PolicySetInputSchema, PolicySetOutputSchema, PolicyTimeControlsSchema, PolicyTransactionTypesSchema, PolicyViolationSchema, PublicKeySchema, RemainingLimitsSchema, SequenceNumberSchema, SignedTransactionBlobSchema, SignerEntrySchema, TimestampSchema, TransactionHashSchema, TransactionHistoryEntrySchema, TransactionResultSchema, TransactionTypeSchema, TxDecodeInputSchema, TxDecodeOutputSchema, TxSubmitInputSchema, TxSubmitOutputSchema, UnsignedTransactionBlobSchema, WalletBalanceInputSchema, WalletBalanceOutputSchema, WalletCreateInputSchema, WalletCreateOutputSchema, WalletFundInputSchema, WalletFundOutputSchema, WalletHistoryInputSchema, WalletHistoryOutputSchema, WalletIdSchema, WalletListEntrySchema, WalletListInputSchema, WalletListOutputSchema, WalletNameSchema, WalletPolicyCheckInputSchema, WalletPolicyCheckOutputSchema, WalletRotateInputSchema, WalletRotateOutputSchema, WalletSignApprovedOutputSchema, WalletSignInputSchema, WalletSignOutputSchema, WalletSignPendingOutputSchema, WalletSignRejectedOutputSchema, XRPLAddressSchema, __commonJS, __require, __toESM };
+//# sourceMappingURL=chunk-M5227CX6.js.map
+//# sourceMappingURL=chunk-M5227CX6.js.map
