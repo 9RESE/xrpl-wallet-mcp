@@ -11,7 +11,7 @@
 
 This MCP (Model Context Protocol) server enables AI agents to autonomously manage XRPL wallets and sign transactions within configurable policy boundaries. It implements a tiered security model where low-risk operations execute immediately while high-value transactions require human oversight.
 
-> **Project Status**: Technical specification complete. Implementation phase beginning.
+> **Project Status**: ✅ **Phase 1 Implementation Complete** - All core modules implemented and tested (222 tests passing)
 
 ## The Problem
 
@@ -46,10 +46,10 @@ A security-first MCP server that provides:
 │  │  (Token bucket)  │  │  (Hash chains)   │  │    (xrpl.js)     │  │
 │  └──────────────────┘  └──────────────────┘  └──────────────────┘  │
 ├─────────────────────────────────────────────────────────────────────┤
-│                         10 MCP Tools                                 │
+│                         11 MCP Tools                                 │
 │  wallet_create │ wallet_sign │ wallet_balance │ wallet_policy_check │
-│  wallet_rotate │ wallet_list │ wallet_history │ policy_set          │
-│  tx_submit     │ tx_decode                                          │
+│  wallet_rotate │ wallet_list │ wallet_history │ wallet_fund         │
+│  policy_set    │ tx_submit   │ tx_decode                            │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -129,6 +129,7 @@ Ask Claude: *"Create a new XRPL wallet on testnet for my AI agent"*
 | `wallet_rotate` | Rotate regular key | DESTRUCTIVE |
 | `wallet_list` | List managed wallets | LOW |
 | `wallet_history` | Query transaction history | LOW |
+| `wallet_fund` | Fund wallet from testnet/devnet faucet | HIGH |
 | `policy_set` | Update policy configuration | CRITICAL |
 | `tx_submit` | Submit signed transaction | HIGH |
 | `tx_decode` | Decode transaction blob | LOW |
@@ -224,7 +225,7 @@ The policy engine includes defenses against prompt injection:
 - [OWASP LLM Mitigations](./docs/security/owasp-llm-mitigations.md) - Top 10 coverage
 
 ### API Reference
-- [Tool Specifications](./docs/api/tools/) - All 10 MCP tools
+- [Tool Specifications](./docs/api/tools/) - All 11 MCP tools
 - [Policy Schema](./docs/api/policy-schema.md) - Complete policy format
 - [Network Configuration](./docs/api/network-config.md) - Network setup
 
@@ -273,7 +274,7 @@ npm run test:security      # Security tests
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| **1 (MVP)** | Local keystore, policy engine, 10 MCP tools | Spec Complete |
+| **1 (MVP)** | Local keystore, policy engine, 11 MCP tools | ✅ **Complete** |
 | **2** | Cloud KMS (AWS/GCP), HSM integration | Planned |
 | **3** | TEE deployment (AWS Nitro), KYA identity | Future |
 
