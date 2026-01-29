@@ -2,44 +2,48 @@
  * tx_submit Tool Implementation
  *
  * Submits signed transaction to XRPL with enhanced response
- * including tx_type, sequence_used, and escrow_reference.
+ * including tx_type, sequence_used, escrow_reference, and next_sequence.
+ *
+ * After successful submission, increments the local sequence tracker to
+ * prevent tefPAST_SEQ race conditions in rapid multi-transaction workflows.
  *
  * @module tools/tx-submit
- * @version 2.0.0
+ * @version 2.1.0
+ * @since 2026-01-29 - Added next_sequence tracking to fix race condition
  */
 
 import { decode } from 'xrpl';
 import type { ServerContext } from '../server.js';
 import type { TxSubmitInput, TxSubmitOutput, TransactionType, EscrowReference } from '../schemas/index.js';
+import { getSequenceTracker } from '../xrpl/sequence-tracker.js';
 
 /**
  * Extract transaction metadata from decoded transaction.
  *
  * @param decoded - Decoded transaction object
- * @returns Transaction metadata (type, sequence, escrow reference)
+ * @returns Transaction metadata (type, sequence, account, escrow reference)
  */
 function extractTransactionMetadata(decoded: Record<string, unknown>): {
   txType: TransactionType | undefined;
   sequenceUsed: number | undefined;
+  account: string | undefined;
   escrowReference: EscrowReference | undefined;
 } {
   const txType = decoded.TransactionType as TransactionType | undefined;
   const sequenceUsed = typeof decoded.Sequence === 'number' ? decoded.Sequence : undefined;
+  const account = decoded.Account as string | undefined;
 
   // For EscrowCreate, build escrow reference for finish/cancel operations
   let escrowReference: EscrowReference | undefined;
 
-  if (txType === 'EscrowCreate' && sequenceUsed !== undefined) {
-    const owner = decoded.Account as string | undefined;
-    if (owner) {
-      escrowReference = {
-        owner,
-        sequence: sequenceUsed,
-      };
-    }
+  if (txType === 'EscrowCreate' && sequenceUsed !== undefined && account) {
+    escrowReference = {
+      owner: account,
+      sequence: sequenceUsed,
+    };
   }
 
-  return { txType, sequenceUsed, escrowReference };
+  return { txType, sequenceUsed, account, escrowReference };
 }
 
 /**
@@ -68,6 +72,7 @@ export async function handleTxSubmit(
   // Decode transaction to extract metadata before submission
   let txType: TransactionType | undefined;
   let sequenceUsed: number | undefined;
+  let account: string | undefined;
   let escrowReference: EscrowReference | undefined;
 
   try {
@@ -75,6 +80,7 @@ export async function handleTxSubmit(
     const metadata = extractTransactionMetadata(decoded);
     txType = metadata.txType;
     sequenceUsed = metadata.sequenceUsed;
+    account = metadata.account;
     escrowReference = metadata.escrowReference;
   } catch (decodeError) {
     // Continue with submission even if decode fails
@@ -98,6 +104,23 @@ export async function handleTxSubmit(
       : undefined,
   });
 
+  // Track sequence after successful submission to prevent race conditions
+  // This is the KEY FIX: record sequence at submit time, not just sign time
+  // The next transaction for this account MUST use sequenceUsed + 1
+  let nextSequence: number | undefined;
+
+  if (result.resultCode === 'tesSUCCESS' && account && sequenceUsed !== undefined) {
+    const sequenceTracker = getSequenceTracker();
+    sequenceTracker.recordSignedSequence(account, sequenceUsed);
+    nextSequence = sequenceUsed + 1;
+
+    // Log for debugging sequence race conditions
+    console.error(
+      `[tx_submit] Recorded sequence ${sequenceUsed} for ${account}, ` +
+      `next tx should use ${nextSequence}`
+    );
+  }
+
   // Build response with enhanced metadata
   const response: TxSubmitOutput = {
     tx_hash: result.hash,
@@ -111,6 +134,7 @@ export async function handleTxSubmit(
     validated_at: result.validated ? new Date().toISOString() : undefined,
     tx_type: txType,
     sequence_used: sequenceUsed,
+    next_sequence: nextSequence,
   };
 
   // Add escrow reference for EscrowCreate transactions

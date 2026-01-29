@@ -1749,6 +1749,14 @@ export const TxSubmitOutputSchema = z
      * Contains owner and sequence needed for EscrowFinish/EscrowCancel.
      */
     escrow_reference: EscrowReferenceSchema.optional(),
+
+    /**
+     * Next sequence number to use for this account (only on success)
+     * Use this for the next transaction instead of querying the ledger.
+     * This prevents tefPAST_SEQ race conditions in rapid multi-tx workflows.
+     * @since 2.1.0
+     */
+    next_sequence: SequenceNumberSchema.optional(),
   })
   .describe('Transaction submission result');
 

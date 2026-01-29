@@ -72,11 +72,22 @@ export async function handleWalletSign(
       // This ensures we don't reuse a sequence that was just signed but not yet validated
       const nextSequence = sequenceTracker.getNextSequence(input.wallet_address, ledgerSequence);
 
+      // Debug logging for sequence race condition diagnosis
+      const trackerInfo = sequenceTracker.getDebugInfo().get(input.wallet_address);
+      console.error(
+        `[wallet_sign] Sequence calculation for ${input.wallet_address}: ` +
+        `ledger=${ledgerSequence}, tracked=${trackerInfo?.sequence ?? 'none'}, ` +
+        `using=${nextSequence}`
+      );
+
       // Track if we need to re-encode
       let needsReencode = false;
 
       // Update sequence if different from calculated next sequence
       if (decoded.Sequence !== nextSequence) {
+        console.error(
+          `[wallet_sign] Updating sequence from ${decoded.Sequence} to ${nextSequence}`
+        );
         decoded.Sequence = nextSequence;
         needsReencode = true;
       }
