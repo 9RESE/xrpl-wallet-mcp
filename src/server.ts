@@ -107,11 +107,12 @@ const TOOLS: Tool[] = [
   },
   {
     name: 'wallet_balance',
-    description: 'Query wallet balance, reserves, and status. Returns current state from XRPL.',
+    description: 'Query wallet balance, reserves, and status. Returns current state from XRPL with ledger_index for verification.',
     inputSchema: {
       type: 'object',
       properties: {
         wallet_address: { type: 'string' },
+        wait_after_tx: { type: 'number', minimum: 0, maximum: 30000, description: 'Wait time in ms before querying (for post-transaction timing)' },
       },
       required: ['wallet_address'],
     },
@@ -165,12 +166,13 @@ const TOOLS: Tool[] = [
   },
   {
     name: 'wallet_fund',
-    description: 'Fund wallet from testnet/devnet faucet. Only available on test networks.',
+    description: 'Fund wallet from testnet/devnet faucet with automatic retry until account is queryable. Returns initial_balance_drops for test verification.',
     inputSchema: {
       type: 'object',
       properties: {
         wallet_address: { type: 'string' },
         network: { type: 'string', enum: ['testnet', 'devnet'] },
+        wait_for_confirmation: { type: 'boolean', description: 'Wait for account to be queryable on validated ledger (default: true)' },
       },
       required: ['wallet_address', 'network'],
     },

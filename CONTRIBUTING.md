@@ -348,7 +348,7 @@ Please read [SECURITY.md](SECURITY.md) for our security policy and responsible d
 For security issues:
 
 1. **Preferred**: Use GitHub Security Advisories
-2. **Alternative**: Email security@[project-email].com
+2. **Alternative**: Email contact@9rese.com
 
 We will acknowledge receipt within 48 hours and provide a detailed response within 7 days.
 

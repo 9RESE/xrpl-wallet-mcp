@@ -1101,10 +1101,19 @@ declare const WalletBalanceInputSchema: z.ZodObject<{
      * Address to query balance for
      */
     wallet_address: z.ZodString;
+    /**
+     * Wait time in milliseconds before querying (optional)
+     * Useful for waiting after a transaction to ensure balance is updated.
+     * @default 0
+     * @example 5000 (wait 5 seconds)
+     */
+    wait_after_tx: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     wallet_address: string;
+    wait_after_tx?: number | undefined;
 }, {
     wallet_address: string;
+    wait_after_tx?: number | undefined;
 }>;
 /**
  * Input schema for wallet_policy_check tool
@@ -1210,12 +1219,21 @@ declare const WalletFundInputSchema: z.ZodObject<{
      * Network (must be testnet or devnet)
      */
     network: z.ZodEnum<["testnet", "devnet"]>;
+    /**
+     * Wait for account to be confirmed on validated ledger (optional)
+     * When true, retries account_info until account is queryable.
+     * Recommended for automated workflows.
+     * @default true
+     */
+    wait_for_confirmation: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
 }, "strip", z.ZodTypeAny, {
     network: "testnet" | "devnet";
     wallet_address: string;
+    wait_for_confirmation: boolean;
 }, {
     network: "testnet" | "devnet";
     wallet_address: string;
+    wait_for_confirmation?: boolean | undefined;
 }>;
 /**
  * Input schema for policy_set tool
@@ -2208,6 +2226,11 @@ declare const WalletBalanceOutputSchema: z.ZodObject<{
      */
     network: z.ZodEnum<["mainnet", "testnet", "devnet"]>;
     /**
+     * Ledger index from which balance was queried
+     * Use this for consistency verification across queries.
+     */
+    ledger_index: z.ZodNumber;
+    /**
      * When balance was queried
      */
     queried_at: z.ZodString;
@@ -2225,6 +2248,7 @@ declare const WalletBalanceOutputSchema: z.ZodObject<{
         account: string;
         weight: number;
     }[] | null;
+    ledger_index: number;
     queried_at: string;
 }, {
     policy_id: string;
@@ -2240,6 +2264,7 @@ declare const WalletBalanceOutputSchema: z.ZodObject<{
         account: string;
         weight: number;
     }[] | null;
+    ledger_index: number;
     queried_at: string;
 }>;
 /**
@@ -2481,9 +2506,9 @@ declare const TransactionHistoryEntrySchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
     policy_tier: 1 | 2 | 3 | 4;
+    ledger_index: number;
     hash: string;
     timestamp: string;
-    ledger_index: number;
     success: boolean;
     context?: string | undefined;
     destination?: string | undefined;
@@ -2491,9 +2516,9 @@ declare const TransactionHistoryEntrySchema: z.ZodObject<{
 }, {
     type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
     policy_tier: 1 | 2 | 3 | 4;
+    ledger_index: number;
     hash: string;
     timestamp: string;
-    ledger_index: number;
     success: boolean;
     context?: string | undefined;
     destination?: string | undefined;
@@ -2550,9 +2575,9 @@ declare const WalletHistoryOutputSchema: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
         policy_tier: 1 | 2 | 3 | 4;
+        ledger_index: number;
         hash: string;
         timestamp: string;
-        ledger_index: number;
         success: boolean;
         context?: string | undefined;
         destination?: string | undefined;
@@ -2560,9 +2585,9 @@ declare const WalletHistoryOutputSchema: z.ZodObject<{
     }, {
         type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
         policy_tier: 1 | 2 | 3 | 4;
+        ledger_index: number;
         hash: string;
         timestamp: string;
-        ledger_index: number;
         success: boolean;
         context?: string | undefined;
         destination?: string | undefined;
@@ -2581,9 +2606,9 @@ declare const WalletHistoryOutputSchema: z.ZodObject<{
     transactions: {
         type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
         policy_tier: 1 | 2 | 3 | 4;
+        ledger_index: number;
         hash: string;
         timestamp: string;
-        ledger_index: number;
         success: boolean;
         context?: string | undefined;
         destination?: string | undefined;
@@ -2596,9 +2621,9 @@ declare const WalletHistoryOutputSchema: z.ZodObject<{
     transactions: {
         type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
         policy_tier: 1 | 2 | 3 | 4;
+        ledger_index: number;
         hash: string;
         timestamp: string;
-        ledger_index: number;
         success: boolean;
         context?: string | undefined;
         destination?: string | undefined;
@@ -2739,25 +2764,58 @@ declare const WalletFundOutputSchema: z.ZodObject<{
      */
     tx_hash: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
     /**
-     * New balance after funding
+     * Initial balance after funding in drops
+     * Use this for verification in tests instead of hardcoded values.
+     */
+    initial_balance_drops: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
+    /**
+     * New balance after funding (alias for initial_balance_drops)
+     * @deprecated Use initial_balance_drops
      */
     new_balance_drops: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
+    /**
+     * Whether the account is ready for queries on validated ledger
+     * True means account_info will succeed.
+     */
+    account_ready: z.ZodOptional<z.ZodBoolean>;
+    /**
+     * Ledger index where account was confirmed
+     */
+    ledger_index: z.ZodOptional<z.ZodNumber>;
     /**
      * Error message if failed
      */
     error: z.ZodOptional<z.ZodString>;
+    /**
+     * Informational message
+     */
+    message: z.ZodOptional<z.ZodString>;
+    /**
+     * Faucet URL used (for debugging)
+     */
+    faucet_url: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     status: "funded" | "pending" | "failed";
+    message?: string | undefined;
     tx_hash?: string | undefined;
+    ledger_index?: number | undefined;
     amount_drops?: string | undefined;
+    initial_balance_drops?: string | undefined;
     new_balance_drops?: string | undefined;
+    account_ready?: boolean | undefined;
     error?: string | undefined;
+    faucet_url?: string | undefined;
 }, {
     status: "funded" | "pending" | "failed";
+    message?: string | undefined;
     tx_hash?: string | undefined;
+    ledger_index?: number | undefined;
     amount_drops?: string | undefined;
+    initial_balance_drops?: string | undefined;
     new_balance_drops?: string | undefined;
+    account_ready?: boolean | undefined;
     error?: string | undefined;
+    faucet_url?: string | undefined;
 }>;
 /**
  * Output schema for policy_set tool
@@ -2822,6 +2880,26 @@ declare const TransactionResultSchema: z.ZodObject<{
     result_message: string;
 }>;
 /**
+ * Escrow reference for tracking escrow transactions
+ */
+declare const EscrowReferenceSchema: z.ZodObject<{
+    /**
+     * Owner address (creator of the escrow)
+     */
+    owner: z.ZodString;
+    /**
+     * Sequence number to use for EscrowFinish/EscrowCancel
+     * This is the OfferSequence field in finish/cancel transactions.
+     */
+    sequence: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    sequence: number;
+    owner: string;
+}, {
+    sequence: number;
+    owner: string;
+}>;
+/**
  * Output schema for tx_submit tool
  */
 declare const TxSubmitOutputSchema: z.ZodObject<{
@@ -2866,6 +2944,37 @@ declare const TxSubmitOutputSchema: z.ZodObject<{
      * When validated (if wait_for_validation was true)
      */
     validated_at: z.ZodOptional<z.ZodString>;
+    /**
+     * Transaction type that was submitted
+     * Useful for routing post-submission logic.
+     */
+    tx_type: z.ZodOptional<z.ZodEnum<["AccountDelete", "AccountSet", "AMMBid", "AMMCreate", "AMMDelete", "AMMDeposit", "AMMVote", "AMMWithdraw", "CheckCancel", "CheckCash", "CheckCreate", "Clawback", "DepositPreauth", "DIDDelete", "DIDSet", "EnableAmendment", "EscrowCancel", "EscrowCreate", "EscrowFinish", "NFTokenAcceptOffer", "NFTokenBurn", "NFTokenCancelOffer", "NFTokenCreateOffer", "NFTokenMint", "OfferCancel", "OfferCreate", "Payment", "PaymentChannelClaim", "PaymentChannelCreate", "PaymentChannelFund", "SetFee", "SetRegularKey", "SignerListSet", "TicketCreate", "TrustSet", "UNLModify", "XChainAccountCreateCommit", "XChainAddClaimAttestation", "XChainClaim", "XChainCommit", "XChainCreateBridge", "XChainCreateClaimID", "XChainModifyBridge"]>>;
+    /**
+     * Sequence number consumed by this transaction
+     * Useful for tracking escrows or other sequence-dependent operations.
+     */
+    sequence_used: z.ZodOptional<z.ZodNumber>;
+    /**
+     * Escrow reference (only for EscrowCreate transactions)
+     * Contains owner and sequence needed for EscrowFinish/EscrowCancel.
+     */
+    escrow_reference: z.ZodOptional<z.ZodObject<{
+        /**
+         * Owner address (creator of the escrow)
+         */
+        owner: z.ZodString;
+        /**
+         * Sequence number to use for EscrowFinish/EscrowCancel
+         * This is the OfferSequence field in finish/cancel transactions.
+         */
+        sequence: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        sequence: number;
+        owner: string;
+    }, {
+        sequence: number;
+        owner: string;
+    }>>;
 }, "strip", z.ZodTypeAny, {
     tx_hash: string;
     result: {
@@ -2876,6 +2985,12 @@ declare const TxSubmitOutputSchema: z.ZodObject<{
     submitted_at: string;
     ledger_index?: number | undefined;
     validated_at?: string | undefined;
+    tx_type?: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge" | undefined;
+    sequence_used?: number | undefined;
+    escrow_reference?: {
+        sequence: number;
+        owner: string;
+    } | undefined;
 }, {
     tx_hash: string;
     result: {
@@ -2886,6 +3001,12 @@ declare const TxSubmitOutputSchema: z.ZodObject<{
     submitted_at: string;
     ledger_index?: number | undefined;
     validated_at?: string | undefined;
+    tx_type?: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge" | undefined;
+    sequence_used?: number | undefined;
+    escrow_reference?: {
+        sequence: number;
+        owner: string;
+    } | undefined;
 }>;
 /**
  * Decoded transaction fields
@@ -3336,6 +3457,7 @@ type WalletListOutput = z.infer<typeof WalletListOutputSchema>;
 type WalletFundOutput = z.infer<typeof WalletFundOutputSchema>;
 type PolicySetOutput = z.infer<typeof PolicySetOutputSchema>;
 type TransactionResult = z.infer<typeof TransactionResultSchema>;
+type EscrowReference = z.infer<typeof EscrowReferenceSchema>;
 type TxSubmitOutput = z.infer<typeof TxSubmitOutputSchema>;
 type DecodedTransaction = z.infer<typeof DecodedTransactionSchema>;
 type TxDecodeOutput = z.infer<typeof TxDecodeOutputSchema>;
@@ -3781,10 +3903,19 @@ declare const InputSchemas: {
          * Address to query balance for
          */
         wallet_address: z.ZodString;
+        /**
+         * Wait time in milliseconds before querying (optional)
+         * Useful for waiting after a transaction to ensure balance is updated.
+         * @default 0
+         * @example 5000 (wait 5 seconds)
+         */
+        wait_after_tx: z.ZodOptional<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
         wallet_address: string;
+        wait_after_tx?: number | undefined;
     }, {
         wallet_address: string;
+        wait_after_tx?: number | undefined;
     }>;
     readonly wallet_policy_check: z.ZodObject<{
         /**
@@ -3862,12 +3993,21 @@ declare const InputSchemas: {
          * Network (must be testnet or devnet)
          */
         network: z.ZodEnum<["testnet", "devnet"]>;
+        /**
+         * Wait for account to be confirmed on validated ledger (optional)
+         * When true, retries account_info until account is queryable.
+         * Recommended for automated workflows.
+         * @default true
+         */
+        wait_for_confirmation: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
     }, "strip", z.ZodTypeAny, {
         network: "testnet" | "devnet";
         wallet_address: string;
+        wait_for_confirmation: boolean;
     }, {
         network: "testnet" | "devnet";
         wallet_address: string;
+        wait_for_confirmation?: boolean | undefined;
     }>;
     readonly policy_set: z.ZodObject<{
         /**
@@ -4591,6 +4731,11 @@ declare const OutputSchemas: {
          */
         network: z.ZodEnum<["mainnet", "testnet", "devnet"]>;
         /**
+         * Ledger index from which balance was queried
+         * Use this for consistency verification across queries.
+         */
+        ledger_index: z.ZodNumber;
+        /**
          * When balance was queried
          */
         queried_at: z.ZodString;
@@ -4608,6 +4753,7 @@ declare const OutputSchemas: {
             account: string;
             weight: number;
         }[] | null;
+        ledger_index: number;
         queried_at: string;
     }, {
         policy_id: string;
@@ -4623,6 +4769,7 @@ declare const OutputSchemas: {
             account: string;
             weight: number;
         }[] | null;
+        ledger_index: number;
         queried_at: string;
     }>;
     readonly wallet_policy_check: z.ZodObject<{
@@ -4820,9 +4967,9 @@ declare const OutputSchemas: {
         }, "strip", z.ZodTypeAny, {
             type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
             policy_tier: 1 | 2 | 3 | 4;
+            ledger_index: number;
             hash: string;
             timestamp: string;
-            ledger_index: number;
             success: boolean;
             context?: string | undefined;
             destination?: string | undefined;
@@ -4830,9 +4977,9 @@ declare const OutputSchemas: {
         }, {
             type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
             policy_tier: 1 | 2 | 3 | 4;
+            ledger_index: number;
             hash: string;
             timestamp: string;
-            ledger_index: number;
             success: boolean;
             context?: string | undefined;
             destination?: string | undefined;
@@ -4851,9 +4998,9 @@ declare const OutputSchemas: {
         transactions: {
             type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
             policy_tier: 1 | 2 | 3 | 4;
+            ledger_index: number;
             hash: string;
             timestamp: string;
-            ledger_index: number;
             success: boolean;
             context?: string | undefined;
             destination?: string | undefined;
@@ -4866,9 +5013,9 @@ declare const OutputSchemas: {
         transactions: {
             type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
             policy_tier: 1 | 2 | 3 | 4;
+            ledger_index: number;
             hash: string;
             timestamp: string;
-            ledger_index: number;
             success: boolean;
             context?: string | undefined;
             destination?: string | undefined;
@@ -4960,25 +5107,58 @@ declare const OutputSchemas: {
          */
         tx_hash: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
         /**
-         * New balance after funding
+         * Initial balance after funding in drops
+         * Use this for verification in tests instead of hardcoded values.
+         */
+        initial_balance_drops: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
+        /**
+         * New balance after funding (alias for initial_balance_drops)
+         * @deprecated Use initial_balance_drops
          */
         new_balance_drops: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
+        /**
+         * Whether the account is ready for queries on validated ledger
+         * True means account_info will succeed.
+         */
+        account_ready: z.ZodOptional<z.ZodBoolean>;
+        /**
+         * Ledger index where account was confirmed
+         */
+        ledger_index: z.ZodOptional<z.ZodNumber>;
         /**
          * Error message if failed
          */
         error: z.ZodOptional<z.ZodString>;
+        /**
+         * Informational message
+         */
+        message: z.ZodOptional<z.ZodString>;
+        /**
+         * Faucet URL used (for debugging)
+         */
+        faucet_url: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         status: "funded" | "pending" | "failed";
+        message?: string | undefined;
         tx_hash?: string | undefined;
+        ledger_index?: number | undefined;
         amount_drops?: string | undefined;
+        initial_balance_drops?: string | undefined;
         new_balance_drops?: string | undefined;
+        account_ready?: boolean | undefined;
         error?: string | undefined;
+        faucet_url?: string | undefined;
     }, {
         status: "funded" | "pending" | "failed";
+        message?: string | undefined;
         tx_hash?: string | undefined;
+        ledger_index?: number | undefined;
         amount_drops?: string | undefined;
+        initial_balance_drops?: string | undefined;
         new_balance_drops?: string | undefined;
+        account_ready?: boolean | undefined;
         error?: string | undefined;
+        faucet_url?: string | undefined;
     }>;
     readonly policy_set: z.ZodObject<{
         /**
@@ -5056,6 +5236,37 @@ declare const OutputSchemas: {
          * When validated (if wait_for_validation was true)
          */
         validated_at: z.ZodOptional<z.ZodString>;
+        /**
+         * Transaction type that was submitted
+         * Useful for routing post-submission logic.
+         */
+        tx_type: z.ZodOptional<z.ZodEnum<["AccountDelete", "AccountSet", "AMMBid", "AMMCreate", "AMMDelete", "AMMDeposit", "AMMVote", "AMMWithdraw", "CheckCancel", "CheckCash", "CheckCreate", "Clawback", "DepositPreauth", "DIDDelete", "DIDSet", "EnableAmendment", "EscrowCancel", "EscrowCreate", "EscrowFinish", "NFTokenAcceptOffer", "NFTokenBurn", "NFTokenCancelOffer", "NFTokenCreateOffer", "NFTokenMint", "OfferCancel", "OfferCreate", "Payment", "PaymentChannelClaim", "PaymentChannelCreate", "PaymentChannelFund", "SetFee", "SetRegularKey", "SignerListSet", "TicketCreate", "TrustSet", "UNLModify", "XChainAccountCreateCommit", "XChainAddClaimAttestation", "XChainClaim", "XChainCommit", "XChainCreateBridge", "XChainCreateClaimID", "XChainModifyBridge"]>>;
+        /**
+         * Sequence number consumed by this transaction
+         * Useful for tracking escrows or other sequence-dependent operations.
+         */
+        sequence_used: z.ZodOptional<z.ZodNumber>;
+        /**
+         * Escrow reference (only for EscrowCreate transactions)
+         * Contains owner and sequence needed for EscrowFinish/EscrowCancel.
+         */
+        escrow_reference: z.ZodOptional<z.ZodObject<{
+            /**
+             * Owner address (creator of the escrow)
+             */
+            owner: z.ZodString;
+            /**
+             * Sequence number to use for EscrowFinish/EscrowCancel
+             * This is the OfferSequence field in finish/cancel transactions.
+             */
+            sequence: z.ZodNumber;
+        }, "strip", z.ZodTypeAny, {
+            sequence: number;
+            owner: string;
+        }, {
+            sequence: number;
+            owner: string;
+        }>>;
     }, "strip", z.ZodTypeAny, {
         tx_hash: string;
         result: {
@@ -5066,6 +5277,12 @@ declare const OutputSchemas: {
         submitted_at: string;
         ledger_index?: number | undefined;
         validated_at?: string | undefined;
+        tx_type?: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge" | undefined;
+        sequence_used?: number | undefined;
+        escrow_reference?: {
+            sequence: number;
+            owner: string;
+        } | undefined;
     }, {
         tx_hash: string;
         result: {
@@ -5076,6 +5293,12 @@ declare const OutputSchemas: {
         submitted_at: string;
         ledger_index?: number | undefined;
         validated_at?: string | undefined;
+        tx_type?: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge" | undefined;
+        sequence_used?: number | undefined;
+        escrow_reference?: {
+            sequence: number;
+            owner: string;
+        } | undefined;
     }>;
     readonly tx_decode: z.ZodObject<{
         /**
@@ -5285,4 +5508,4 @@ declare const OutputSchemas: {
  */
 type ToolName = keyof typeof InputSchemas;
 
-export { type AgentWalletPolicy, AgentWalletPolicySchema, type ApprovalTier, ApprovalTierSchema, type AuditEventType, AuditEventTypeSchema, type AuditLogEntry, AuditLogEntrySchema, type DecodedTransaction, DecodedTransactionSchema, type DestinationMode, DestinationModeSchema, type DropsAmount, DropsAmountOptionalZeroSchema, DropsAmountSchema, type ErrorCode, ErrorCodeSchema, type ErrorResponse, ErrorResponseSchema, type HexString, type HexStringRaw, HexStringRawSchema, HexStringSchema, InputSchemas, type LedgerIndex, LedgerIndexSchema, type LimitStatus, LimitStatusSchema, type Network, type NetworkConfigInput, NetworkConfigInputSchema, type NetworkConfigOutput, NetworkConfigOutputSchema, NetworkSchema, type NotificationEvent, NotificationEventSchema, OutputSchemas, type PaginationMarker, PaginationMarkerSchema, type PolicyDestinations, PolicyDestinationsSchema, type PolicyEscalation, PolicyEscalationSchema, type PolicyLimits, PolicyLimitsSchema, type PolicyNotifications, PolicyNotificationsSchema, type PolicySetInput, PolicySetInputSchema, type PolicySetOutput, PolicySetOutputSchema, type PolicyTimeControls, PolicyTimeControlsSchema, type PolicyTransactionTypes, PolicyTransactionTypesSchema, type PolicyViolation, PolicyViolationSchema, type PublicKey, PublicKeySchema, type RemainingLimits, RemainingLimitsSchema, type SequenceNumber, SequenceNumberSchema, type SignedTransactionBlob, SignedTransactionBlobSchema, type SignerEntry, SignerEntrySchema, type Timestamp, TimestampSchema, type ToolName, type TransactionHash, TransactionHashSchema, type TransactionHistoryEntry, TransactionHistoryEntrySchema, type TransactionResult, TransactionResultSchema, type TransactionType, TransactionTypeSchema, type TxDecodeInput, TxDecodeInputSchema, type TxDecodeOutput, TxDecodeOutputSchema, type TxSubmitInput, TxSubmitInputSchema, type TxSubmitOutput, TxSubmitOutputSchema, type UnsignedTransactionBlob, UnsignedTransactionBlobSchema, type WalletBalanceInput, WalletBalanceInputSchema, type WalletBalanceOutput, WalletBalanceOutputSchema, type WalletCreateInput, WalletCreateInputSchema, type WalletCreateOutput, WalletCreateOutputSchema, type WalletFundInput, WalletFundInputSchema, type WalletFundOutput, WalletFundOutputSchema, type WalletHistoryInput, WalletHistoryInputSchema, type WalletHistoryOutput, WalletHistoryOutputSchema, type WalletId, WalletIdSchema, type WalletListEntry, WalletListEntrySchema, type WalletListInput, WalletListInputSchema, type WalletListOutput, WalletListOutputSchema, type WalletName, WalletNameSchema, type WalletPolicyCheckInput, WalletPolicyCheckInputSchema, type WalletPolicyCheckOutput, WalletPolicyCheckOutputSchema, type WalletRotateInput, WalletRotateInputSchema, type WalletRotateOutput, WalletRotateOutputSchema, type WalletSignApprovedOutput, WalletSignApprovedOutputSchema, type WalletSignInput, WalletSignInputSchema, type WalletSignOutput, WalletSignOutputSchema, type WalletSignPendingOutput, WalletSignPendingOutputSchema, type WalletSignRejectedOutput, WalletSignRejectedOutputSchema, type XRPLAddress, XRPLAddressSchema };
+export { type AgentWalletPolicy, AgentWalletPolicySchema, type ApprovalTier, ApprovalTierSchema, type AuditEventType, AuditEventTypeSchema, type AuditLogEntry, AuditLogEntrySchema, type DecodedTransaction, DecodedTransactionSchema, type DestinationMode, DestinationModeSchema, type DropsAmount, DropsAmountOptionalZeroSchema, DropsAmountSchema, type ErrorCode, ErrorCodeSchema, type ErrorResponse, ErrorResponseSchema, type EscrowReference, EscrowReferenceSchema, type HexString, type HexStringRaw, HexStringRawSchema, HexStringSchema, InputSchemas, type LedgerIndex, LedgerIndexSchema, type LimitStatus, LimitStatusSchema, type Network, type NetworkConfigInput, NetworkConfigInputSchema, type NetworkConfigOutput, NetworkConfigOutputSchema, NetworkSchema, type NotificationEvent, NotificationEventSchema, OutputSchemas, type PaginationMarker, PaginationMarkerSchema, type PolicyDestinations, PolicyDestinationsSchema, type PolicyEscalation, PolicyEscalationSchema, type PolicyLimits, PolicyLimitsSchema, type PolicyNotifications, PolicyNotificationsSchema, type PolicySetInput, PolicySetInputSchema, type PolicySetOutput, PolicySetOutputSchema, type PolicyTimeControls, PolicyTimeControlsSchema, type PolicyTransactionTypes, PolicyTransactionTypesSchema, type PolicyViolation, PolicyViolationSchema, type PublicKey, PublicKeySchema, type RemainingLimits, RemainingLimitsSchema, type SequenceNumber, SequenceNumberSchema, type SignedTransactionBlob, SignedTransactionBlobSchema, type SignerEntry, SignerEntrySchema, type Timestamp, TimestampSchema, type ToolName, type TransactionHash, TransactionHashSchema, type TransactionHistoryEntry, TransactionHistoryEntrySchema, type TransactionResult, TransactionResultSchema, type TransactionType, TransactionTypeSchema, type TxDecodeInput, TxDecodeInputSchema, type TxDecodeOutput, TxDecodeOutputSchema, type TxSubmitInput, TxSubmitInputSchema, type TxSubmitOutput, TxSubmitOutputSchema, type UnsignedTransactionBlob, UnsignedTransactionBlobSchema, type WalletBalanceInput, WalletBalanceInputSchema, type WalletBalanceOutput, WalletBalanceOutputSchema, type WalletCreateInput, WalletCreateInputSchema, type WalletCreateOutput, WalletCreateOutputSchema, type WalletFundInput, WalletFundInputSchema, type WalletFundOutput, WalletFundOutputSchema, type WalletHistoryInput, WalletHistoryInputSchema, type WalletHistoryOutput, WalletHistoryOutputSchema, type WalletId, WalletIdSchema, type WalletListEntry, WalletListEntrySchema, type WalletListInput, WalletListInputSchema, type WalletListOutput, WalletListOutputSchema, type WalletName, WalletNameSchema, type WalletPolicyCheckInput, WalletPolicyCheckInputSchema, type WalletPolicyCheckOutput, WalletPolicyCheckOutputSchema, type WalletRotateInput, WalletRotateInputSchema, type WalletRotateOutput, WalletRotateOutputSchema, type WalletSignApprovedOutput, WalletSignApprovedOutputSchema, type WalletSignInput, WalletSignInputSchema, type WalletSignOutput, WalletSignOutputSchema, type WalletSignPendingOutput, WalletSignPendingOutputSchema, type WalletSignRejectedOutput, WalletSignRejectedOutputSchema, type XRPLAddress, XRPLAddressSchema };

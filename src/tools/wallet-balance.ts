@@ -2,9 +2,10 @@
  * wallet_balance Tool Implementation
  *
  * Queries wallet balance and status from XRPL.
+ * Returns ledger_index for consistency verification.
  *
  * @module tools/wallet-balance
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 import { dropsToXrp } from 'xrpl';
@@ -12,22 +13,36 @@ import type { ServerContext } from '../server.js';
 import type { WalletBalanceInput, WalletBalanceOutput } from '../schemas/index.js';
 
 /**
+ * Sleep utility for wait_after_tx delay
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
  * Handle wallet_balance tool invocation.
  *
  * Process:
- * 1. Query XRPL for account info and server info
- * 2. Calculate reserves using network-specific values
- * 3. Return balance, reserves, and available funds
+ * 1. Optional: Wait for specified delay (for post-transaction timing)
+ * 2. Query XRPL for account info and server info
+ * 3. Calculate reserves using network-specific values
+ * 4. Return balance, reserves, available funds, and ledger_index
  *
  * @param context - Service instances
  * @param input - Validated balance query
- * @returns Wallet balance and status
+ * @returns Wallet balance, status, and ledger_index
  */
 export async function handleWalletBalance(
   context: ServerContext,
   input: WalletBalanceInput
 ): Promise<WalletBalanceOutput> {
   const { keystore, xrplClient } = context;
+
+  // Optional delay for post-transaction balance queries
+  // This helps avoid stale balance reads after a transaction
+  if (input.wait_after_tx && input.wait_after_tx > 0) {
+    await sleep(input.wait_after_tx);
+  }
 
   // Get wallet entry to find network and policy
   const wallets = await keystore.listWallets();
@@ -39,6 +54,9 @@ export async function handleWalletBalance(
 
   // Query XRPL for account info
   const accountInfo = await xrplClient.getAccountInfo(input.wallet_address);
+
+  // Query current ledger index for consistency verification
+  const currentLedgerIndex = await xrplClient.getCurrentLedgerIndex();
 
   // Query server info for current reserve requirements
   let baseReserve = BigInt('10000000'); // 10 XRP default
@@ -66,14 +84,15 @@ export async function handleWalletBalance(
   return {
     address: input.wallet_address,
     balance_drops: balance.toString(),
-    balance_xrp: dropsToXrp(balance.toString()),
+    balance_xrp: String(dropsToXrp(balance.toString())), // Ensure string type
     reserve_drops: totalReserve.toString(),
     available_drops: available.toString(),
-    sequence: accountInfo.sequence,
-    regular_key_set: !!(accountInfo as any).regularKey,
+    sequence: accountInfo.sequence, // Keep as number per schema
+    regular_key_set: !!(accountInfo as { regularKey?: string }).regularKey,
     signer_list: null, // SignerList would require separate account_objects query
     policy_id: wallet.policyId,
     network: wallet.network,
+    ledger_index: currentLedgerIndex,
     queried_at: new Date().toISOString(),
   };
 }

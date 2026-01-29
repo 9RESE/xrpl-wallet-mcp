@@ -749,6 +749,20 @@ export const WalletBalanceInputSchema = z
      * Address to query balance for
      */
     wallet_address: XRPLAddressSchema,
+
+    /**
+     * Wait time in milliseconds before querying (optional)
+     * Useful for waiting after a transaction to ensure balance is updated.
+     * @default 0
+     * @example 5000 (wait 5 seconds)
+     */
+    wait_after_tx: z
+      .number()
+      .int()
+      .min(0)
+      .max(30000)
+      .optional()
+      .describe('Wait time in ms before querying (0-30000, for post-transaction timing)'),
   })
   .describe('Get wallet balance and status');
 
@@ -863,6 +877,18 @@ export const WalletFundInputSchema = z
     network: z
       .enum(['testnet', 'devnet'])
       .describe('Network to fund from (testnet or devnet only)'),
+
+    /**
+     * Wait for account to be confirmed on validated ledger (optional)
+     * When true, retries account_info until account is queryable.
+     * Recommended for automated workflows.
+     * @default true
+     */
+    wait_for_confirmation: z
+      .boolean()
+      .optional()
+      .default(true)
+      .describe('Wait for account to be queryable on validated ledger (default: true)'),
   })
   .describe('Fund wallet from testnet/devnet faucet');
 
@@ -1271,6 +1297,12 @@ export const WalletBalanceOutputSchema = z
     network: NetworkSchema,
 
     /**
+     * Ledger index from which balance was queried
+     * Use this for consistency verification across queries.
+     */
+    ledger_index: z.number().int().positive(),
+
+    /**
      * When balance was queried
      */
     queried_at: TimestampSchema,
@@ -1541,14 +1573,42 @@ export const WalletFundOutputSchema = z
     tx_hash: TransactionHashSchema.optional(),
 
     /**
-     * New balance after funding
+     * Initial balance after funding in drops
+     * Use this for verification in tests instead of hardcoded values.
+     */
+    initial_balance_drops: DropsAmountOptionalZeroSchema.optional(),
+
+    /**
+     * New balance after funding (alias for initial_balance_drops)
+     * @deprecated Use initial_balance_drops
      */
     new_balance_drops: DropsAmountOptionalZeroSchema.optional(),
+
+    /**
+     * Whether the account is ready for queries on validated ledger
+     * True means account_info will succeed.
+     */
+    account_ready: z.boolean().optional(),
+
+    /**
+     * Ledger index where account was confirmed
+     */
+    ledger_index: z.number().int().positive().optional(),
 
     /**
      * Error message if failed
      */
     error: z.string().optional(),
+
+    /**
+     * Informational message
+     */
+    message: z.string().optional(),
+
+    /**
+     * Faucet URL used (for debugging)
+     */
+    faucet_url: z.string().url().optional(),
   })
   .describe('Faucet funding result');
 
@@ -1607,6 +1667,24 @@ export const TransactionResultSchema = z
   .describe('Transaction result from XRPL');
 
 /**
+ * Escrow reference for tracking escrow transactions
+ */
+export const EscrowReferenceSchema = z
+  .object({
+    /**
+     * Owner address (creator of the escrow)
+     */
+    owner: XRPLAddressSchema,
+
+    /**
+     * Sequence number to use for EscrowFinish/EscrowCancel
+     * This is the OfferSequence field in finish/cancel transactions.
+     */
+    sequence: SequenceNumberSchema,
+  })
+  .describe('Escrow reference for finish/cancel operations');
+
+/**
  * Output schema for tx_submit tool
  */
 export const TxSubmitOutputSchema = z
@@ -1635,6 +1713,24 @@ export const TxSubmitOutputSchema = z
      * When validated (if wait_for_validation was true)
      */
     validated_at: TimestampSchema.optional(),
+
+    /**
+     * Transaction type that was submitted
+     * Useful for routing post-submission logic.
+     */
+    tx_type: TransactionTypeSchema.optional(),
+
+    /**
+     * Sequence number consumed by this transaction
+     * Useful for tracking escrows or other sequence-dependent operations.
+     */
+    sequence_used: SequenceNumberSchema.optional(),
+
+    /**
+     * Escrow reference (only for EscrowCreate transactions)
+     * Contains owner and sequence needed for EscrowFinish/EscrowCancel.
+     */
+    escrow_reference: EscrowReferenceSchema.optional(),
   })
   .describe('Transaction submission result');
 
@@ -2005,6 +2101,7 @@ export type WalletListOutput = z.infer<typeof WalletListOutputSchema>;
 export type WalletFundOutput = z.infer<typeof WalletFundOutputSchema>;
 export type PolicySetOutput = z.infer<typeof PolicySetOutputSchema>;
 export type TransactionResult = z.infer<typeof TransactionResultSchema>;
+export type EscrowReference = z.infer<typeof EscrowReferenceSchema>;
 export type TxSubmitOutput = z.infer<typeof TxSubmitOutputSchema>;
 export type DecodedTransaction = z.infer<typeof DecodedTransactionSchema>;
 export type TxDecodeOutput = z.infer<typeof TxDecodeOutputSchema>;

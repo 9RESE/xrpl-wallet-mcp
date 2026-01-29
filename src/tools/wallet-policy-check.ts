@@ -35,16 +35,21 @@ export async function handleWalletPolicyCheck(
     throw new Error(`Wallet not found: ${input.wallet_address}`);
   }
 
-  // Decode transaction to extract fields
+  // Decode transaction to extract fields (use bracket notation for index signature)
   const decoded = decode(input.unsigned_tx);
+  const transactionType = decoded['TransactionType'] as string;
+  const destinationField = 'Destination' in decoded ? decoded['Destination'] : undefined;
+  const destination = typeof destinationField === 'string' ? destinationField : undefined;
+  const amountField = 'Amount' in decoded ? decoded['Amount'] : undefined;
+  const amountDrops = typeof amountField === 'string' ? amountField : undefined;
 
   // Evaluate policy
   const policyResult = await policyEngine.evaluateTransaction(
     wallet.policyId,
     {
-      type: decoded.TransactionType,
-      destination: 'Destination' in decoded ? (decoded.Destination as string) : undefined,
-      amount_drops: 'Amount' in decoded && typeof decoded.Amount === 'string' ? decoded.Amount : undefined,
+      type: transactionType,
+      ...(destination ? { destination } : {}),
+      ...(amountDrops ? { amount_drops: amountDrops } : {}),
     }
   );
 
@@ -73,9 +78,9 @@ export async function handleWalletPolicyCheck(
     violations: policyResult.violations || [],
     limits,
     transaction_details: {
-      type: decoded.TransactionType,
-      destination: 'Destination' in decoded ? (decoded.Destination as string) : undefined,
-      amount_drops: 'Amount' in decoded && typeof decoded.Amount === 'string' ? decoded.Amount : undefined,
+      type: transactionType as any, // Cast to match expected transaction type enum
+      ...(destination ? { destination } : {}),
+      ...(amountDrops ? { amount_drops: amountDrops } : {}),
     },
   };
 }

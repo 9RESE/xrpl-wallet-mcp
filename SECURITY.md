@@ -27,7 +27,7 @@ Please report security vulnerabilities through one of these channels:
    - Fill in the vulnerability details
 
 2. **Email**
-   - Send to: security@[project-email].com
+   - Send to: contact@9rese.com
    - Use PGP encryption if possible (key below)
    - Subject: [SECURITY] Brief description
 
@@ -152,9 +152,9 @@ Subscribe to GitHub notifications for this repository to stay informed.
 
 ## Contact
 
-- Security issues: security@[project-email].com
-- General questions: [project-email].com
-- GitHub Discussions: For non-sensitive security questions
+- **Security issues**: contact@9rese.com
+- **General questions**: contact@9rese.com
+- **GitHub Discussions**: For non-sensitive security questions
 
 ---
 

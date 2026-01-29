@@ -46,13 +46,18 @@ export async function handleWalletSign(
   // Decode transaction to extract fields
   const decoded = decode(input.unsigned_tx);
 
-  // Evaluate policy
+  // Evaluate policy - access fields using bracket notation for index signature types
+  const transactionType = decoded['TransactionType'] as string;
+  const destination = 'Destination' in decoded ? (decoded['Destination'] as string) : undefined;
+  const amountField = 'Amount' in decoded ? decoded['Amount'] : undefined;
+  const amountDrops = typeof amountField === 'string' ? amountField : undefined;
+
   const policyResult = await policyEngine.evaluateTransaction(
     wallet.policyId,
     {
-      type: decoded.TransactionType,
-      destination: 'Destination' in decoded ? (decoded.Destination as string) : undefined,
-      amount_drops: 'Amount' in decoded && typeof decoded.Amount === 'string' ? decoded.Amount : undefined,
+      type: transactionType,
+      ...(destination ? { destination } : {}),
+      ...(amountDrops ? { amount_drops: amountDrops } : {}),
     }
   );
 
@@ -64,10 +69,10 @@ export async function handleWalletSign(
       event: 'policy_violation',
       wallet_id: wallet.walletId,
       wallet_address: wallet.address,
-      transaction_type: decoded.TransactionType as any,
+      transaction_type: transactionType as any, // Cast to TransactionType enum
       tier: 4,
       policy_decision: 'denied',
-      context: input.context,
+      ...(input.context ? { context: input.context } : {}),
     });
 
     return {
@@ -85,10 +90,10 @@ export async function handleWalletSign(
       event: 'approval_requested',
       wallet_id: wallet.walletId,
       wallet_address: wallet.address,
-      transaction_type: decoded.TransactionType as any,
+      transaction_type: transactionType as any, // Cast to TransactionType enum
       tier: policyResult.tier,
       policy_decision: 'pending',
-      context: input.context,
+      ...(input.context ? { context: input.context } : {}),
     });
 
     return {
@@ -112,11 +117,11 @@ export async function handleWalletSign(
     event: 'transaction_signed',
     wallet_id: wallet.walletId,
     wallet_address: wallet.address,
-    transaction_type: decoded.TransactionType as any,
+    transaction_type: transactionType as any, // Cast to TransactionType enum
     tx_hash: signed.hash,
     tier: 1,
     policy_decision: 'allowed',
-    context: input.context,
+    ...(input.context ? { context: input.context } : {}),
   });
 
   // Get limit state from policy engine for accurate reporting

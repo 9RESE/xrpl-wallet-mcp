@@ -13,6 +13,7 @@ This MCP (Model Context Protocol) server enables AI agents to autonomously manag
 
 > **Project Status**: ✅ **Phase 1 Implementation Complete** - All core modules implemented and tested (222 tests passing)
 > **Security Status**: ✅ **Security Review Complete** - 19 issues identified and remediated (see [ADR-011](./docs/architecture/09-decisions/ADR-011-security-remediation.md))
+> **Integration Status**: ✅ **Escrow MCP Integration** - Timing-aware parameters and escrow tracking (see [ADR-012](./docs/architecture/09-decisions/ADR-012-escrow-integration-improvements.md))
 
 ## The Problem
 
@@ -206,6 +207,21 @@ The policy engine includes defenses against prompt injection:
 - Policy rules are immutable at runtime (agent cannot self-modify)
 - Context field sanitized before audit logging
 
+### Escrow Integration (v0.2.0)
+
+Enhanced support for working with [xrpl-escrow-mcp](https://github.com/9RESE/xrpl-escrow-mcp) and other MCP servers:
+
+| Enhancement | Tool | Description |
+|-------------|------|-------------|
+| **Timing-Aware Funding** | `wallet_fund` | `wait_for_confirmation` parameter with retry logic (15 attempts, 2s intervals) |
+| **Balance Propagation** | `wallet_balance` | `wait_after_tx` parameter (0-30000ms) ensures accurate balance after transactions |
+| **Escrow Tracking** | `tx_submit` | Returns `tx_type`, `sequence_used`, and `escrow_reference` for complete escrow lifecycle |
+| **Ledger Consistency** | All tools | `ledger_index` in responses enables consistency verification |
+
+**Important**: Testnet/devnet faucets now provide ~100 XRP (previously 1000 XRP). Use `initial_balance_drops` from `wallet_fund` response instead of hardcoding amounts.
+
+See [Network Timing Reference](./docs/user/reference/network-timing.md) for detailed timing considerations.
+
 ### Security Hardening (v0.1.1)
 
 Following a comprehensive security review, the following hardening measures were implemented:
@@ -234,7 +250,7 @@ See [ADR-011](./docs/architecture/09-decisions/ADR-011-security-remediation.md) 
 - [Runtime View](./docs/architecture/06-runtime-view.md) - Sequence diagrams
 - [Deployment](./docs/architecture/07-deployment-view.md) - Infrastructure
 - [Crosscutting](./docs/architecture/08-crosscutting.md) - Security, logging, errors
-- [ADRs](./docs/architecture/09-decisions/) - 11 architecture decisions
+- [ADRs](./docs/architecture/09-decisions/) - 12 architecture decisions
 
 ### Security
 - [Threat Model](./docs/security/threat-model.md) - STRIDE analysis, 20 threats
@@ -250,7 +266,7 @@ See [ADR-011](./docs/architecture/09-decisions/ADR-011-security-remediation.md) 
 ### User Guides (Diataxis)
 - **Tutorials**: [Getting Started](./docs/user/tutorials/getting-started.md), [Escrow Workflow](./docs/user/tutorials/escrow-workflow.md)
 - **How-To**: [Configure Policies](./docs/user/how-to/configure-policies.md), [Rotate Keys](./docs/user/how-to/rotate-keys.md), [Network Config](./docs/user/how-to/network-configuration.md)
-- **Reference**: [API](./docs/user/reference/api.md), [Transaction Types](./docs/user/reference/supported-transactions.md)
+- **Reference**: [API](./docs/user/reference/api.md), [Transaction Types](./docs/user/reference/supported-transactions.md), [Network Timing](./docs/user/reference/network-timing.md)
 - **Explanation**: [Security Model](./docs/user/explanation/security-model.md), [Policy Engine](./docs/user/explanation/policy-engine.md)
 
 ## Development
@@ -308,6 +324,16 @@ MIT License - see [LICENSE](./LICENSE)
 
 ## Acknowledgments
 
+### Project Maintainers
+
+This project is created and maintained by **[9 RESE' LLC](https://9rese.com)**.
+
+### Community Support
+
+Special thanks to the **$POSSE** XRPL community project for their support in initiating and maintaining this open source wallet infrastructure for AI agents on the XRP Ledger.
+
+### Built With
+
 - [XRPL Foundation](https://xrpl.org/) - XRP Ledger and xrpl.js
 - [Anthropic](https://anthropic.com/) - Model Context Protocol
 - [xrpl-escrow-mcp](https://github.com/9RESE/xrpl-escrow-mcp) - Companion project
@@ -315,4 +341,9 @@ MIT License - see [LICENSE](./LICENSE)
 
 ---
 
-**Questions?** [Open an issue](https://github.com/9RESE/xrpl-agent-wallet-mcp/issues) or start a [discussion](https://github.com/9RESE/xrpl-agent-wallet-mcp/discussions)
+## Contact
+
+- **General Inquiries**: contact@9rese.com
+- **Security Issues**: See [SECURITY.md](./SECURITY.md) - do NOT open public issues
+- **Bug Reports**: [Open an issue](https://github.com/9RESE/xrpl-agent-wallet-mcp/issues)
+- **Discussions**: [Start a discussion](https://github.com/9RESE/xrpl-agent-wallet-mcp/discussions)

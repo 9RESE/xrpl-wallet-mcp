@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { __commonJS, __require, AuditEventTypeSchema, TransactionTypeSchema, __toESM, InputSchemas } from './chunk-M5227CX6.js';
-export { AgentWalletPolicySchema, ApprovalTierSchema, AuditEventTypeSchema, AuditLogEntrySchema, DecodedTransactionSchema, DestinationModeSchema, DropsAmountOptionalZeroSchema, DropsAmountSchema, ErrorCodeSchema, ErrorResponseSchema, HexStringRawSchema, HexStringSchema, InputSchemas, LedgerIndexSchema, LimitStatusSchema, NetworkConfigInputSchema, NetworkConfigOutputSchema, NetworkSchema, NotificationEventSchema, OutputSchemas, PaginationMarkerSchema, PolicyDestinationsSchema, PolicyEscalationSchema, PolicyLimitsSchema, PolicyNotificationsSchema, PolicySetInputSchema, PolicySetOutputSchema, PolicyTimeControlsSchema, PolicyTransactionTypesSchema, PolicyViolationSchema, PublicKeySchema, RemainingLimitsSchema, SequenceNumberSchema, SignedTransactionBlobSchema, SignerEntrySchema, TimestampSchema, TransactionHashSchema, TransactionHistoryEntrySchema, TransactionResultSchema, TransactionTypeSchema, TxDecodeInputSchema, TxDecodeOutputSchema, TxSubmitInputSchema, TxSubmitOutputSchema, UnsignedTransactionBlobSchema, WalletBalanceInputSchema, WalletBalanceOutputSchema, WalletCreateInputSchema, WalletCreateOutputSchema, WalletFundInputSchema, WalletFundOutputSchema, WalletHistoryInputSchema, WalletHistoryOutputSchema, WalletIdSchema, WalletListEntrySchema, WalletListInputSchema, WalletListOutputSchema, WalletNameSchema, WalletPolicyCheckInputSchema, WalletPolicyCheckOutputSchema, WalletRotateInputSchema, WalletRotateOutputSchema, WalletSignApprovedOutputSchema, WalletSignInputSchema, WalletSignOutputSchema, WalletSignPendingOutputSchema, WalletSignRejectedOutputSchema, XRPLAddressSchema } from './chunk-M5227CX6.js';
+import { __commonJS, __require, AuditEventTypeSchema, TransactionTypeSchema, __toESM, InputSchemas } from './chunk-UHUYJFUT.js';
+export { AgentWalletPolicySchema, ApprovalTierSchema, AuditEventTypeSchema, AuditLogEntrySchema, DecodedTransactionSchema, DestinationModeSchema, DropsAmountOptionalZeroSchema, DropsAmountSchema, ErrorCodeSchema, ErrorResponseSchema, EscrowReferenceSchema, HexStringRawSchema, HexStringSchema, InputSchemas, LedgerIndexSchema, LimitStatusSchema, NetworkConfigInputSchema, NetworkConfigOutputSchema, NetworkSchema, NotificationEventSchema, OutputSchemas, PaginationMarkerSchema, PolicyDestinationsSchema, PolicyEscalationSchema, PolicyLimitsSchema, PolicyNotificationsSchema, PolicySetInputSchema, PolicySetOutputSchema, PolicyTimeControlsSchema, PolicyTransactionTypesSchema, PolicyViolationSchema, PublicKeySchema, RemainingLimitsSchema, SequenceNumberSchema, SignedTransactionBlobSchema, SignerEntrySchema, TimestampSchema, TransactionHashSchema, TransactionHistoryEntrySchema, TransactionResultSchema, TransactionTypeSchema, TxDecodeInputSchema, TxDecodeOutputSchema, TxSubmitInputSchema, TxSubmitOutputSchema, UnsignedTransactionBlobSchema, WalletBalanceInputSchema, WalletBalanceOutputSchema, WalletCreateInputSchema, WalletCreateOutputSchema, WalletFundInputSchema, WalletFundOutputSchema, WalletHistoryInputSchema, WalletHistoryOutputSchema, WalletIdSchema, WalletListEntrySchema, WalletListInputSchema, WalletListOutputSchema, WalletNameSchema, WalletPolicyCheckInputSchema, WalletPolicyCheckOutputSchema, WalletRotateInputSchema, WalletRotateOutputSchema, WalletSignApprovedOutputSchema, WalletSignInputSchema, WalletSignOutputSchema, WalletSignPendingOutputSchema, WalletSignRejectedOutputSchema, XRPLAddressSchema } from './chunk-UHUYJFUT.js';
 import * as crypto from 'crypto';
 import { createHmac, createHash, randomUUID } from 'crypto';
 import { z } from 'zod';
@@ -409,8 +409,8 @@ var require_lib = __commonJS({
       const id = (a) => a;
       const wrap = (a, b) => (c) => a(b(c));
       const encode2 = args.map((x) => x.encode).reduceRight(wrap, id);
-      const decode6 = args.map((x) => x.decode).reduce(wrap, id);
-      return { encode: encode2, decode: decode6 };
+      const decode7 = args.map((x) => x.decode).reduce(wrap, id);
+      return { encode: encode2, decode: decode7 };
     }
     // @__NO_SIDE_EFFECTS__
     function alphabet(letters) {
@@ -778,7 +778,7 @@ var require_lib = __commonJS({
         const sum = bechChecksum(lowered, words, ENCODING_CONST);
         return `${lowered}1${BECH_ALPHABET.encode(words)}${sum}`;
       }
-      function decode6(str, limit = 90) {
+      function decode7(str, limit = 90) {
         astr("bech32.decode input", str);
         const slen = str.length;
         if (slen < 8 || limit !== false && slen > limit)
@@ -799,9 +799,9 @@ var require_lib = __commonJS({
           throw new Error(`Invalid checksum in ${str}: expected "${sum}"`);
         return { prefix, words };
       }
-      const decodeUnsafe = unsafeWrapper(decode6);
+      const decodeUnsafe = unsafeWrapper(decode7);
       function decodeToBytes(str) {
-        const { prefix, words } = decode6(str, false);
+        const { prefix, words } = decode7(str, false);
         return { prefix, words, bytes: fromWords(words) };
       }
       function encodeFromBytes(prefix, bytes) {
@@ -809,7 +809,7 @@ var require_lib = __commonJS({
       }
       return {
         encode: encode2,
-        decode: decode6,
+        decode: decode7,
         encodeFromBytes,
         decodeToBytes,
         decodeUnsafe,
@@ -9872,14 +9872,16 @@ var FAUCET_CONFIG = {
   testnet: {
     available: true,
     url: "https://faucet.altnet.rippletest.net/accounts",
-    amountXrp: 1e3,
+    amountXrp: 100,
+    // Updated: was 1000, now ~100 XRP
     rateLimitSeconds: 60,
     rateLimitRequests: 1
   },
   devnet: {
     available: true,
     url: "https://faucet.devnet.rippletest.net/accounts",
-    amountXrp: 1e3,
+    amountXrp: 100,
+    // Updated: was 1000, now ~100 XRP
     rateLimitSeconds: 60,
     rateLimitRequests: 1
   }
@@ -10623,8 +10625,8 @@ var MultiSignOrchestrator = class {
     }
     let decodedTx;
     try {
-      const { decode: decode6 } = await import('xrpl');
-      decodedTx = decode6(unsignedTx);
+      const { decode: decode7 } = await import('xrpl');
+      decodedTx = decode7(unsignedTx);
     } catch (error) {
       throw new MultiSignError(
         "INVALID_TRANSACTION",
@@ -11088,7 +11090,7 @@ async function handleWalletCreate(context, input) {
       policyVersion: input.policy.policy_version
     },
     {
-      name: input.wallet_name,
+      ...input.wallet_name ? { name: input.wallet_name } : {},
       password,
       algorithm: "ed25519"
       // Recommended for XRPL
@@ -11123,12 +11125,16 @@ async function handleWalletSign(context, input) {
     throw new Error(`Wallet not found: ${input.wallet_address}`);
   }
   const decoded = decode(input.unsigned_tx);
+  const transactionType = decoded["TransactionType"];
+  const destination = "Destination" in decoded ? decoded["Destination"] : void 0;
+  const amountField = "Amount" in decoded ? decoded["Amount"] : void 0;
+  const amountDrops = typeof amountField === "string" ? amountField : void 0;
   const policyResult = await policyEngine.evaluateTransaction(
     wallet.policyId,
     {
-      type: decoded.TransactionType,
-      destination: "Destination" in decoded ? decoded.Destination : void 0,
-      amount_drops: "Amount" in decoded && typeof decoded.Amount === "string" ? decoded.Amount : void 0
+      type: transactionType,
+      ...destination ? { destination } : {},
+      ...amountDrops ? { amount_drops: amountDrops } : {}
     }
   );
   const timestamp = (/* @__PURE__ */ new Date()).toISOString();
@@ -11137,10 +11143,11 @@ async function handleWalletSign(context, input) {
       event: "policy_violation",
       wallet_id: wallet.walletId,
       wallet_address: wallet.address,
-      transaction_type: decoded.TransactionType,
+      transaction_type: transactionType,
+      // Cast to TransactionType enum
       tier: 4,
       policy_decision: "denied",
-      context: input.context
+      ...input.context ? { context: input.context } : {}
     });
     return {
       status: "rejected",
@@ -11154,10 +11161,11 @@ async function handleWalletSign(context, input) {
       event: "approval_requested",
       wallet_id: wallet.walletId,
       wallet_address: wallet.address,
-      transaction_type: decoded.TransactionType,
+      transaction_type: transactionType,
+      // Cast to TransactionType enum
       tier: policyResult.tier,
       policy_decision: "pending",
-      context: input.context
+      ...input.context ? { context: input.context } : {}
     });
     return {
       status: "pending_approval",
@@ -11178,11 +11186,12 @@ async function handleWalletSign(context, input) {
     event: "transaction_signed",
     wallet_id: wallet.walletId,
     wallet_address: wallet.address,
-    transaction_type: decoded.TransactionType,
+    transaction_type: transactionType,
+    // Cast to TransactionType enum
     tx_hash: signed.hash,
     tier: 1,
     policy_decision: "allowed",
-    context: input.context
+    ...input.context ? { context: input.context } : {}
   });
   const limitState = policyEngine.getLimitState();
   policyEngine.getPolicyInfo();
@@ -11205,14 +11214,21 @@ async function handleWalletSign(context, input) {
     signed_at: timestamp
   };
 }
+function sleep2(ms) {
+  return new Promise((resolve2) => setTimeout(resolve2, ms));
+}
 async function handleWalletBalance(context, input) {
   const { keystore, xrplClient } = context;
+  if (input.wait_after_tx && input.wait_after_tx > 0) {
+    await sleep2(input.wait_after_tx);
+  }
   const wallets = await keystore.listWallets();
   const wallet = wallets.find((w) => w.address === input.wallet_address);
   if (!wallet) {
     throw new Error(`Wallet not found: ${input.wallet_address}`);
   }
   const accountInfo = await xrplClient.getAccountInfo(input.wallet_address);
+  const currentLedgerIndex = await xrplClient.getCurrentLedgerIndex();
   let baseReserve = BigInt("10000000");
   let ownerReserve = BigInt("2000000");
   try {
@@ -11231,15 +11247,18 @@ async function handleWalletBalance(context, input) {
   return {
     address: input.wallet_address,
     balance_drops: balance.toString(),
-    balance_xrp: dropsToXrp$1(balance.toString()),
+    balance_xrp: String(dropsToXrp$1(balance.toString())),
+    // Ensure string type
     reserve_drops: totalReserve.toString(),
     available_drops: available.toString(),
     sequence: accountInfo.sequence,
+    // Keep as number per schema
     regular_key_set: !!accountInfo.regularKey,
     signer_list: null,
     // SignerList would require separate account_objects query
     policy_id: wallet.policyId,
     network: wallet.network,
+    ledger_index: currentLedgerIndex,
     queried_at: (/* @__PURE__ */ new Date()).toISOString()
   };
 }
@@ -11251,12 +11270,17 @@ async function handleWalletPolicyCheck(context, input) {
     throw new Error(`Wallet not found: ${input.wallet_address}`);
   }
   const decoded = decode(input.unsigned_tx);
+  const transactionType = decoded["TransactionType"];
+  const destinationField = "Destination" in decoded ? decoded["Destination"] : void 0;
+  const destination = typeof destinationField === "string" ? destinationField : void 0;
+  const amountField = "Amount" in decoded ? decoded["Amount"] : void 0;
+  const amountDrops = typeof amountField === "string" ? amountField : void 0;
   const policyResult = await policyEngine.evaluateTransaction(
     wallet.policyId,
     {
-      type: decoded.TransactionType,
-      destination: "Destination" in decoded ? decoded.Destination : void 0,
-      amount_drops: "Amount" in decoded && typeof decoded.Amount === "string" ? decoded.Amount : void 0
+      type: transactionType,
+      ...destination ? { destination } : {},
+      ...amountDrops ? { amount_drops: amountDrops } : {}
     }
   );
   const limitState = policyEngine.getLimitState();
@@ -11278,9 +11302,10 @@ async function handleWalletPolicyCheck(context, input) {
     violations: policyResult.violations || [],
     limits,
     transaction_details: {
-      type: decoded.TransactionType,
-      destination: "Destination" in decoded ? decoded.Destination : void 0,
-      amount_drops: "Amount" in decoded && typeof decoded.Amount === "string" ? decoded.Amount : void 0
+      type: transactionType,
+      // Cast to match expected transaction type enum
+      ...destination ? { destination } : {},
+      ...amountDrops ? { amount_drops: amountDrops } : {}
     }
   };
 }
@@ -11410,35 +11435,128 @@ async function handleWalletHistory(context, input) {
     has_more: transactions.length >= (input.limit || 20)
   };
 }
-
-// src/tools/wallet-fund.ts
+var FAUCET_CONFIG2 = {
+  /** Maximum retries for account confirmation */
+  maxRetries: 15,
+  /** Delay between retries in milliseconds */
+  retryDelayMs: 2e3,
+  /** Initial wait after faucet request before first check */
+  initialWaitMs: 3e3
+};
+function sleep3(ms) {
+  return new Promise((resolve2) => setTimeout(resolve2, ms));
+}
 async function handleWalletFund(context, input) {
-  const { xrplClient, auditLogger } = context;
-  if (input.network === "mainnet") {
-    throw new Error("Faucet not available on mainnet");
-  }
-  try {
-    const fundResult = await xrplClient.fundWallet(input.network, input.wallet_address);
-    await auditLogger.log({
-      event: "wallet_created",
-      // Using existing event type
-      seq: 0,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      wallet_address: input.wallet_address,
-      context: `Funded from ${input.network} faucet`,
-      prev_hash: "",
-      hash: ""
-    });
-    return {
-      status: "funded",
-      amount_drops: fundResult.amount,
-      tx_hash: fundResult.hash,
-      new_balance_drops: fundResult.balance
-    };
-  } catch (error) {
+  const { auditLogger } = context;
+  const waitForConfirmation = input.wait_for_confirmation ?? true;
+  const faucetUrl = getFaucetUrl(input.network);
+  if (!faucetUrl) {
     return {
       status: "failed",
-      error: error instanceof Error ? error.message : "Unknown faucet error"
+      error: `No faucet available for network: ${input.network}`
+    };
+  }
+  const wsUrl = getWebSocketUrl(input.network);
+  const client = new Client(wsUrl);
+  try {
+    await client.connect();
+    await auditLogger.log({
+      event: "wallet_created",
+      // Using existing event type for audit
+      wallet_address: input.wallet_address,
+      context: `Faucet funding requested for ${input.network}`
+    });
+    let fundResult;
+    try {
+      const faucetResponse = await fetch(faucetUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          destination: input.wallet_address
+        })
+      });
+      if (!faucetResponse.ok) {
+        const errorText = await faucetResponse.text();
+        throw new Error(`Faucet request failed: ${faucetResponse.status} - ${errorText}`);
+      }
+      const faucetData = await faucetResponse.json();
+      fundResult = {
+        balance: faucetData.balance ?? faucetData.amount ?? 0
+      };
+    } catch (faucetError) {
+      await client.disconnect();
+      return {
+        status: "failed",
+        error: faucetError instanceof Error ? faucetError.message : "Faucet request failed",
+        faucet_url: faucetUrl
+      };
+    }
+    if (!waitForConfirmation) {
+      await client.disconnect();
+      return {
+        status: "pending",
+        account_ready: false,
+        faucet_url: faucetUrl,
+        message: "Funding submitted. Account may take 5-20 seconds to appear on validated ledger."
+      };
+    }
+    await sleep3(FAUCET_CONFIG2.initialWaitMs);
+    let accountReady = false;
+    let finalBalance = "0";
+    let ledgerIndex;
+    for (let attempt = 0; attempt < FAUCET_CONFIG2.maxRetries; attempt++) {
+      try {
+        const accountInfo = await client.request({
+          command: "account_info",
+          account: input.wallet_address,
+          ledger_index: "validated"
+        });
+        finalBalance = accountInfo.result.account_data.Balance;
+        ledgerIndex = accountInfo.result.ledger_index;
+        accountReady = true;
+        break;
+      } catch (error) {
+        const errorData = error;
+        if (errorData.data?.error === "actNotFound") {
+          await sleep3(FAUCET_CONFIG2.retryDelayMs);
+          continue;
+        }
+        console.warn(`[wallet_fund] Attempt ${attempt + 1} failed:`, error);
+        await sleep3(FAUCET_CONFIG2.retryDelayMs);
+      }
+    }
+    await client.disconnect();
+    if (!accountReady) {
+      return {
+        status: "pending",
+        account_ready: false,
+        faucet_url: faucetUrl,
+        message: `Account not confirmed after ${FAUCET_CONFIG2.maxRetries * FAUCET_CONFIG2.retryDelayMs / 1e3}s. It may still appear later.`
+      };
+    }
+    return {
+      status: "funded",
+      amount_drops: finalBalance,
+      initial_balance_drops: finalBalance,
+      new_balance_drops: finalBalance,
+      // Deprecated but kept for compatibility
+      account_ready: true,
+      ledger_index: ledgerIndex,
+      faucet_url: faucetUrl
+    };
+  } catch (error) {
+    try {
+      if (client.isConnected()) {
+        await client.disconnect();
+      }
+    } catch {
+    }
+    return {
+      status: "failed",
+      error: error instanceof Error ? error.message : "Unknown faucet error",
+      faucet_url: faucetUrl
     };
   }
 }
@@ -11522,41 +11640,70 @@ function analyzePolicyChange(previousPolicyId, newPolicy) {
     changes
   };
 }
-
-// src/tools/tx-submit.ts
+function extractTransactionMetadata(decoded) {
+  const txType = decoded.TransactionType;
+  const sequenceUsed = typeof decoded.Sequence === "number" ? decoded.Sequence : void 0;
+  let escrowReference;
+  if (txType === "EscrowCreate" && sequenceUsed !== void 0) {
+    const owner = decoded.Account;
+    if (owner) {
+      escrowReference = {
+        owner,
+        sequence: sequenceUsed
+      };
+    }
+  }
+  return { txType, sequenceUsed, escrowReference };
+}
 async function handleTxSubmit(context, input) {
   const { xrplClient, auditLogger } = context;
   const submittedAt = (/* @__PURE__ */ new Date()).toISOString();
-  const result = await xrplClient.submitTransaction(
-    input.network,
-    input.signed_tx,
-    input.wait_for_validation ?? true
-  );
+  let txType;
+  let sequenceUsed;
+  let escrowReference;
+  try {
+    const decoded = decode(input.signed_tx);
+    const metadata = extractTransactionMetadata(decoded);
+    txType = metadata.txType;
+    sequenceUsed = metadata.sequenceUsed;
+    escrowReference = metadata.escrowReference;
+  } catch (decodeError) {
+    console.warn("[tx_submit] Could not decode transaction for metadata:", decodeError);
+  }
+  const result = await xrplClient.submitSignedTransaction(input.signed_tx, {
+    waitForValidation: input.wait_for_validation ?? true
+  });
   await auditLogger.log({
     event: "transaction_submitted",
-    seq: 0,
-    timestamp: submittedAt,
     tx_hash: result.hash,
     policy_decision: result.validated ? "allowed" : "pending",
-    prev_hash: "",
-    hash: ""
+    transaction_type: txType,
+    context: escrowReference ? `EscrowCreate: owner=${escrowReference.owner}, sequence=${escrowReference.sequence}` : void 0
   });
-  return {
+  const response = {
     tx_hash: result.hash,
     result: {
       result_code: result.resultCode,
-      result_message: result.resultMessage,
+      result_message: result.resultCode,
+      // resultCode serves as message
       success: result.resultCode === "tesSUCCESS"
     },
     ledger_index: result.ledgerIndex,
     submitted_at: submittedAt,
-    validated_at: result.validated ? (/* @__PURE__ */ new Date()).toISOString() : void 0
+    validated_at: result.validated ? (/* @__PURE__ */ new Date()).toISOString() : void 0,
+    tx_type: txType,
+    sequence_used: sequenceUsed
   };
+  if (escrowReference && result.resultCode === "tesSUCCESS") {
+    response.escrow_reference = escrowReference;
+  }
+  return response;
 }
 async function handleTxDecode(_context, input) {
   const decoded = decode(input.tx_blob);
   const isSigned = "TxnSignature" in decoded || "Signers" in decoded;
-  const signingPublicKey = "SigningPubKey" in decoded && typeof decoded.SigningPubKey === "string" ? decoded.SigningPubKey : void 0;
+  const signingPubKeyField = "SigningPubKey" in decoded ? decoded["SigningPubKey"] : void 0;
+  const signingPublicKey = typeof signingPubKeyField === "string" ? signingPubKeyField : void 0;
   let hash2;
   if (isSigned) {
     try {
@@ -11604,11 +11751,12 @@ var TOOLS = [
   },
   {
     name: "wallet_balance",
-    description: "Query wallet balance, reserves, and status. Returns current state from XRPL.",
+    description: "Query wallet balance, reserves, and status. Returns current state from XRPL with ledger_index for verification.",
     inputSchema: {
       type: "object",
       properties: {
-        wallet_address: { type: "string" }
+        wallet_address: { type: "string" },
+        wait_after_tx: { type: "number", minimum: 0, maximum: 3e4, description: "Wait time in ms before querying (for post-transaction timing)" }
       },
       required: ["wallet_address"]
     }
@@ -11662,12 +11810,13 @@ var TOOLS = [
   },
   {
     name: "wallet_fund",
-    description: "Fund wallet from testnet/devnet faucet. Only available on test networks.",
+    description: "Fund wallet from testnet/devnet faucet with automatic retry until account is queryable. Returns initial_balance_drops for test verification.",
     inputSchema: {
       type: "object",
       properties: {
         wallet_address: { type: "string" },
-        network: { type: "string", enum: ["testnet", "devnet"] }
+        network: { type: "string", enum: ["testnet", "devnet"] },
+        wait_for_confirmation: { type: "boolean", description: "Wait for account to be queryable on validated ledger (default: true)" }
       },
       required: ["wallet_address", "network"]
     }

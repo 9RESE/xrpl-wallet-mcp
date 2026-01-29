@@ -1,7 +1,7 @@
 # tx_submit MCP Tool Specification
 
-**Version:** 1.0.0
-**Date:** 2026-01-28
+**Version:** 2.0.0
+**Date:** 2026-01-29
 **Status:** Complete
 **Security Classification:** HIGH
 
@@ -310,6 +310,41 @@ export const TxSubmitSuccessSchema = z.object({
     .int()
     .optional()
     .describe('Account sequence number used'),
+
+  /**
+   * Transaction type extracted from the transaction.
+   * Useful for routing logic and escrow workflows.
+   * @since 2.0.0
+   */
+  tx_type: z
+    .string()
+    .optional()
+    .describe('Transaction type (e.g., "Payment", "EscrowCreate")'),
+
+  /**
+   * Sequence number used by this transaction.
+   * Critical for escrow tracking (EscrowFinish/EscrowCancel require this).
+   * @since 2.0.0
+   */
+  sequence_used: z
+    .number()
+    .int()
+    .optional()
+    .describe('Sequence number consumed by this transaction'),
+
+  /**
+   * Escrow reference for EscrowCreate transactions.
+   * Provides the owner+sequence needed for EscrowFinish/EscrowCancel.
+   * Only present for successful EscrowCreate transactions.
+   * @since 2.0.0
+   */
+  escrow_reference: z
+    .object({
+      owner: z.string().describe('Escrow owner (creator) address'),
+      sequence: z.number().int().describe('Sequence number to reference the escrow'),
+    })
+    .optional()
+    .describe('Reference for EscrowFinish/EscrowCancel operations'),
 });
 ```
 
@@ -1450,7 +1485,54 @@ interface TxSubmitAuditEvent {
 }
 ```
 
-### 11.8 tec Code - Claimed Cost Only
+### 11.8 EscrowCreate with Escrow Reference (v2.0.0+)
+
+**Request**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "tx_submit",
+    "arguments": {
+      "signed_tx": "1200012280000000240000002A2E00000001614000000005F5E10068400000000000000C7321ED...",
+      "network": "testnet",
+      "wait_for_final": true
+    }
+  },
+  "id": "8"
+}
+```
+
+**Response (EscrowCreate Success)**
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "status": "validated",
+    "tx_hash": "M86N4MH421803II9302H46474482M7479M81KJM741345I8JI9JHMKLO9456K5",
+    "result_code": "tesSUCCESS",
+    "result_message": "The transaction was applied. Only final in a validated ledger.",
+    "ledger_index": 85432200,
+    "transaction_succeeded": true,
+    "network": "testnet",
+    "validated_at": "2026-01-29T10:30:04.000Z",
+    "fee_drops": "12",
+    "sequence": 42,
+    "tx_type": "EscrowCreate",
+    "sequence_used": 42,
+    "escrow_reference": {
+      "owner": "rAgentWallet123...",
+      "sequence": 42
+    }
+  },
+  "id": "8"
+}
+```
+
+> **Note**: The `escrow_reference` field is only present for successful `EscrowCreate` transactions. Use `escrow_reference.owner` and `escrow_reference.sequence` to construct `EscrowFinish` or `EscrowCancel` transactions.
+
+### 11.9 tec Code - Claimed Cost Only
 
 **Request**
 ```json
@@ -1597,6 +1679,14 @@ const submitResult = await mcpClient.callTool('tx_submit', {
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-01-28 | JavaScript Developer Agent | Initial comprehensive specification |
+| 2.0.0 | 2026-01-29 | - | Added `tx_type`, `sequence_used`, and `escrow_reference` fields for escrow integration support |
+
+---
+
+**Related Documentation**
+
+- [Network Timing Reference](../../user/reference/network-timing.md) - Comprehensive guide on XRPL timing considerations
+- [ADR-012: Escrow Integration Improvements](../../architecture/09-decisions/ADR-012-escrow-integration-improvements.md) - Decision record for escrow integration enhancements
 
 ---
 

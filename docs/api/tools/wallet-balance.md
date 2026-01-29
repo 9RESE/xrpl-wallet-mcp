@@ -1,7 +1,7 @@
 # MCP Tool: wallet_balance
 
 **Tool Name**: `wallet_balance`
-**Version**: 1.0.0
+**Version**: 2.0.0 (Updated 2026-01-29)
 **Sensitivity**: Low (Read-only)
 **Rate Limit Tier**: Standard
 
@@ -80,6 +80,13 @@ The `wallet_balance` tool queries the current balance and account state for a ma
       "type": ["string", "integer"],
       "description": "Ledger to query: 'validated', 'current', 'closed', or specific ledger index",
       "default": "validated"
+    },
+    "wait_after_tx": {
+      "type": "integer",
+      "description": "Milliseconds to wait before querying (0-30000). Use after transactions to ensure balance is updated.",
+      "minimum": 0,
+      "maximum": 30000,
+      "default": 0
     }
   },
   "oneOf": [
@@ -108,6 +115,9 @@ interface WalletBalanceInput {
 
   /** Ledger to query (default: 'validated') */
   ledger_index?: 'validated' | 'current' | 'closed' | number;
+
+  /** Milliseconds to wait before querying (0-30000). Use after transactions. */
+  wait_after_tx?: number;
 }
 ```
 
@@ -119,6 +129,21 @@ interface WalletBalanceInput {
 | `address` | Must pass XRPL checksum validation | `INVALID_ADDRESS` |
 | `wallet_id` / `address` | Exactly one must be provided | `INVALID_INPUT` |
 | `ledger_index` | Must be valid ledger specifier | `INVALID_LEDGER_INDEX` |
+| `wait_after_tx` | Must be 0-30000 milliseconds | `INVALID_INPUT` |
+
+### wait_after_tx Parameter
+
+The `wait_after_tx` parameter adds a delay before querying the balance. This is useful for ensuring balance accuracy after submitting transactions:
+
+```typescript
+// After submitting a transaction, wait 5 seconds before checking balance
+const balance = await wallet_balance({
+  wallet_address: 'rXXX...',
+  wait_after_tx: 5000  // 5 second delay
+});
+```
+
+**Why this is needed**: After a transaction is validated, the balance may take 0-3 additional seconds to reflect in `account_info` queries due to ledger propagation delays.
 
 ---
 
@@ -927,6 +952,14 @@ const WalletBalanceInputSchema = z.object({
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-01-28 | JavaScript Developer | Initial specification |
+| 2.0.0 | 2026-01-29 | - | Added `wait_after_tx` parameter for timing control; ensured `ledger_index` in response for consistency verification |
+
+---
+
+**Related Documentation**
+
+- [Network Timing Reference](../../user/reference/network-timing.md) - Comprehensive guide on XRPL timing considerations
+- [ADR-012: Escrow Integration Improvements](../../architecture/09-decisions/ADR-012-escrow-integration-improvements.md) - Decision record for timing enhancements
 
 ---
 

@@ -912,6 +912,7 @@ describe('MCP Tool Output Schemas', () => {
         signer_list: null,
         policy_id: 'conservative-v1',
         network: 'mainnet' as const,
+        ledger_index: 12345678,
         queried_at: '2026-01-28T14:30:00Z',
       };
 
@@ -933,6 +934,7 @@ describe('MCP Tool Output Schemas', () => {
         ],
         policy_id: 'multisig-v1',
         network: 'mainnet' as const,
+        ledger_index: 12345678,
         queried_at: '2026-01-28T14:30:00Z',
       };
 

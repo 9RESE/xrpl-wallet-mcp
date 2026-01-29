@@ -142,6 +142,9 @@ export const EXPLORER_URLS: Record<Network, ExplorerUrls> = {
 
 /**
  * Faucet configuration by network
+ *
+ * NOTE: As of 2026, testnet faucet provides ~100 XRP (previously 1000 XRP).
+ * Do not hardcode faucet amounts in tests - use initial_balance_drops from wallet_fund response.
  */
 export const FAUCET_CONFIG: Record<Network, FaucetConfig> = {
   mainnet: {
@@ -151,14 +154,14 @@ export const FAUCET_CONFIG: Record<Network, FaucetConfig> = {
   testnet: {
     available: true,
     url: 'https://faucet.altnet.rippletest.net/accounts',
-    amountXrp: 1000,
+    amountXrp: 100, // Updated: was 1000, now ~100 XRP
     rateLimitSeconds: 60,
     rateLimitRequests: 1,
   },
   devnet: {
     available: true,
     url: 'https://faucet.devnet.rippletest.net/accounts',
-    amountXrp: 1000,
+    amountXrp: 100, // Updated: was 1000, now ~100 XRP
     rateLimitSeconds: 60,
     rateLimitRequests: 1,
   },

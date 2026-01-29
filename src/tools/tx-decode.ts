@@ -31,10 +31,9 @@ export async function handleTxDecode(
   // Check if transaction is signed (has TxnSignature or Signers)
   const isSigned = 'TxnSignature' in decoded || 'Signers' in decoded;
 
-  // Extract signing public key if signed
-  const signingPublicKey = 'SigningPubKey' in decoded && typeof decoded.SigningPubKey === 'string'
-    ? decoded.SigningPubKey
-    : undefined;
+  // Extract signing public key if signed (use bracket notation for index signature)
+  const signingPubKeyField = 'SigningPubKey' in decoded ? decoded['SigningPubKey'] : undefined;
+  const signingPublicKey = typeof signingPubKeyField === 'string' ? signingPubKeyField : undefined;
 
   // Calculate hash if signed
   let hash: string | undefined;

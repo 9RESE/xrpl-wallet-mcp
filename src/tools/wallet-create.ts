@@ -44,7 +44,7 @@ export async function handleWalletCreate(
       policyVersion: input.policy.policy_version,
     },
     {
-      name: input.wallet_name,
+      ...(input.wallet_name ? { name: input.wallet_name } : {}),
       password,
       algorithm: 'ed25519', // Recommended for XRPL
     }
