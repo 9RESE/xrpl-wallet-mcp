@@ -250,7 +250,7 @@ See [ADR-011](./docs/architecture/09-decisions/ADR-011-security-remediation.md) 
 - [Runtime View](./docs/architecture/06-runtime-view.md) - Sequence diagrams
 - [Deployment](./docs/architecture/07-deployment-view.md) - Infrastructure
 - [Crosscutting](./docs/architecture/08-crosscutting.md) - Security, logging, errors
-- [ADRs](./docs/architecture/09-decisions/) - 12 architecture decisions
+- [ADRs](./docs/architecture/09-decisions/) - 13 architecture decisions
 
 ### Security
 - [Threat Model](./docs/security/threat-model.md) - STRIDE analysis, 20 threats

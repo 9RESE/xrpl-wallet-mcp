@@ -1,7 +1,7 @@
 # wallet_sign MCP Tool Specification
 
-**Version:** 1.0.0
-**Date:** 2026-01-28
+**Version:** 2.0.0
+**Date:** 2026-01-29
 **Status:** Complete
 **Security Classification:** CRITICAL
 
@@ -110,16 +110,50 @@ export const WalletSignInputSchema = z.object({
     .max(500, 'Context must be 500 characters or less')
     .optional()
     .describe('Reason for this transaction (audit trail only)'),
+
+  /**
+   * Whether to automatically fetch fresh sequence from ledger.
+   * When true (default), queries account_info and updates Sequence,
+   * Fee, and LastLedgerSequence before signing.
+   *
+   * This prevents tefPAST_SEQ errors in multi-transaction workflows.
+   * Set to false for offline signing with pre-filled sequences.
+   *
+   * @since 2.0.0
+   */
+  auto_sequence: z
+    .boolean()
+    .optional()
+    .default(true)
+    .describe('Autofill sequence/fee from ledger (default: true)'),
 }).describe('Sign a transaction with policy enforcement');
 ```
 
 ### 2.2 Field Details
 
-| Field | Type | Required | Max Length | Description |
-|-------|------|----------|------------|-------------|
-| `wallet_address` | string | Yes | 35 chars | XRPL r-address of the signing wallet |
-| `unsigned_tx` | string | Yes | 1MB | Hex-encoded unsigned transaction blob |
-| `context` | string | No | 500 chars | Human-readable reason (audit only) |
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `wallet_address` | string | Yes | - | XRPL r-address of the signing wallet |
+| `unsigned_tx` | string | Yes | - | Hex-encoded unsigned transaction blob |
+| `context` | string | No | - | Human-readable reason (audit only, max 500 chars) |
+| `auto_sequence` | boolean | No | `true` | Autofill sequence/fee/LastLedgerSequence from ledger |
+
+### 2.2.1 auto_sequence Parameter (v2.0.0+)
+
+The `auto_sequence` parameter prevents `tefPAST_SEQ` errors in multi-transaction workflows:
+
+**When `auto_sequence: true` (default)**:
+1. Queries `account_info` from validated ledger
+2. Updates transaction `Sequence` to current account sequence
+3. Autofills `Fee` if missing (from network fee)
+4. Autofills `LastLedgerSequence` if missing (current ledger + 20)
+5. Re-encodes transaction before signing
+
+**When `auto_sequence: false`**:
+- Signs transaction as-is with the provided sequence
+- Use for offline signing or ticket-based transactions
+
+See [ADR-013: Sequence Autofill](../../architecture/09-decisions/ADR-013-sequence-autofill.md) for rationale.
 
 ### 2.3 Input Validation
 
@@ -1748,6 +1782,14 @@ interface ErrorResponse {
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-01-28 | JavaScript Developer Agent | Initial comprehensive specification |
+| 2.0.0 | 2026-01-29 | - | Added `auto_sequence` parameter to prevent tefPAST_SEQ in multi-tx workflows |
+
+---
+
+**Related Documentation**
+
+- [ADR-013: Sequence Autofill](../../architecture/09-decisions/ADR-013-sequence-autofill.md) - Decision record for sequence handling
+- [Network Timing Reference](../../user/reference/network-timing.md) - XRPL timing considerations
 
 ---
 

@@ -2,12 +2,14 @@
  * wallet_sign Tool Implementation
  *
  * Signs transactions with policy enforcement (autonomous, delayed, co-sign, or prohibited).
+ * Supports auto-sequence filling to prevent tefPAST_SEQ errors in multi-transaction workflows.
  *
  * @module tools/wallet-sign
- * @version 1.0.0
+ * @version 2.0.0
+ * @since 2026-01-29 - Added auto_sequence support (ADR-013)
  */
 
-import { decode } from 'xrpl';
+import { decode, encode, type Transaction } from 'xrpl';
 import type { ServerContext } from '../server.js';
 import type { WalletSignInput, WalletSignOutput } from '../schemas/index.js';
 import { getWalletPassword } from '../utils/env.js';
@@ -33,7 +35,7 @@ export async function handleWalletSign(
   context: ServerContext,
   input: WalletSignInput
 ): Promise<WalletSignOutput> {
-  const { keystore, policyEngine, signingService, auditLogger } = context;
+  const { keystore, policyEngine, signingService, auditLogger, xrplClient } = context;
 
   // Get wallet entry to find associated policy
   const wallets = await keystore.listWallets();
@@ -44,7 +46,54 @@ export async function handleWalletSign(
   }
 
   // Decode transaction to extract fields
-  const decoded = decode(input.unsigned_tx);
+  let decoded = decode(input.unsigned_tx) as Transaction & Record<string, unknown>;
+
+  // Auto-sequence: fetch fresh sequence from ledger (default: true)
+  // This prevents tefPAST_SEQ errors in multi-transaction workflows
+  let transactionBlob = input.unsigned_tx;
+
+  if (input.auto_sequence !== false) {
+    try {
+      // Get fresh account info from validated ledger
+      const accountInfo = await xrplClient.getAccountInfo(input.wallet_address);
+      const currentSequence = accountInfo.sequence;
+
+      // Track if we need to re-encode
+      let needsReencode = false;
+
+      // Update sequence if different or missing
+      if (decoded.Sequence !== currentSequence) {
+        decoded.Sequence = currentSequence;
+        needsReencode = true;
+      }
+
+      // Autofill Fee if missing
+      if (!decoded.Fee) {
+        const fee = await xrplClient.getFee();
+        decoded.Fee = fee;
+        needsReencode = true;
+      }
+
+      // Autofill LastLedgerSequence if missing (current + 20 for ~80 seconds)
+      if (!decoded.LastLedgerSequence) {
+        const currentLedger = await xrplClient.getCurrentLedgerIndex();
+        decoded.LastLedgerSequence = currentLedger + 20;
+        needsReencode = true;
+      }
+
+      // Re-encode transaction if we modified it
+      if (needsReencode) {
+        transactionBlob = encode(decoded);
+      }
+    } catch (error) {
+      // Log warning but continue with original transaction
+      // This allows offline signing to work if auto_sequence query fails
+      console.warn(
+        '[wallet_sign] Failed to autofill sequence:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
+  }
 
   // Evaluate policy - access fields using bracket notation for index signature types
   const transactionType = decoded['TransactionType'] as string;
@@ -106,10 +155,11 @@ export async function handleWalletSign(
   }
 
   // Tier 1: Autonomous - sign immediately
+  // Use transactionBlob which may have been updated with fresh sequence
   const password = getWalletPassword();
   const signed = await signingService.sign(
     wallet.walletId,
-    input.unsigned_tx,
+    transactionBlob,
     password
   );
 

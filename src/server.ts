@@ -94,13 +94,18 @@ const TOOLS: Tool[] = [
   },
   {
     name: 'wallet_sign',
-    description: 'Sign a transaction with policy enforcement. Returns signed blob, pending approval, or rejection.',
+    description: 'Sign a transaction with policy enforcement. Automatically fetches fresh sequence from ledger to prevent tefPAST_SEQ errors. Returns signed blob, pending approval, or rejection.',
     inputSchema: {
       type: 'object',
       properties: {
         wallet_address: { type: 'string' },
         unsigned_tx: { type: 'string' },
         context: { type: 'string' },
+        auto_sequence: {
+          type: 'boolean',
+          default: true,
+          description: 'Autofill sequence/fee/LastLedgerSequence from ledger before signing. Prevents tefPAST_SEQ in multi-tx workflows.',
+        },
       },
       required: ['wallet_address', 'unsigned_tx'],
     },

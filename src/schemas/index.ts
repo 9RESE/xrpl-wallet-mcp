@@ -735,6 +735,24 @@ export const WalletSignInputSchema = z
       .max(500)
       .optional()
       .describe('Reason for this transaction (audit trail)'),
+
+    /**
+     * Whether to automatically fetch and apply the current sequence from ledger.
+     * When true (default), queries account_info and updates Sequence, Fee, and
+     * LastLedgerSequence in the transaction before signing.
+     *
+     * This prevents tefPAST_SEQ errors in multi-transaction workflows.
+     *
+     * Set to false only if you need to sign with a specific pre-set sequence
+     * (e.g., for offline signing or ticket-based transactions).
+     *
+     * @default true
+     */
+    auto_sequence: z
+      .boolean()
+      .optional()
+      .default(true)
+      .describe('Autofill sequence from ledger before signing (default: true)'),
   })
   .describe('Sign a transaction with policy enforcement');
 
