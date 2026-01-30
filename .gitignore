@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
-
+wallet-mcp-notes.md
+.gitignore
 # Build output
 dist/
 build/
