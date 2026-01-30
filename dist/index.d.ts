@@ -2865,6 +2865,103 @@ declare class XRPLClientWrapper {
 }
 
 /**
+ * Sequence Tracker for XRPL Transactions
+ *
+ * Tracks locally-signed sequences to prevent tefPAST_SEQ errors in
+ * multi-transaction workflows where ledger queries may return stale data.
+ *
+ * The problem: After signing TX with sequence N, the ledger's account_info
+ * may still return sequence N until the TX is validated. If we sign TX B
+ * immediately after, it would also get sequence N and fail.
+ *
+ * The solution: Track sequences we've signed locally and use
+ * MAX(ledger_sequence, last_signed_sequence + 1) for the next TX.
+ *
+ * @module xrpl/sequence-tracker
+ * @version 1.0.0
+ * @since 2026-01-29 - ADR-013 race condition fix
+ */
+/**
+ * Tracks signed transaction sequences per address to prevent race conditions.
+ *
+ * When multiple transactions are signed in quick succession, the XRPL
+ * ledger query may return stale sequence numbers. This tracker ensures
+ * we always use the correct next sequence by remembering what we've signed.
+ *
+ * Entries expire after a configurable TTL (default: 60 seconds) to handle
+ * cases where transactions fail or are never submitted.
+ */
+declare class SequenceTracker {
+    /** Map of address -> last signed sequence entry */
+    private sequences;
+    /** TTL for sequence entries in milliseconds (default: 60 seconds) */
+    private readonly ttlMs;
+    /**
+     * Create a new SequenceTracker.
+     *
+     * @param ttlMs - Time-to-live for entries in milliseconds (default: 60000)
+     */
+    constructor(ttlMs?: number);
+    /**
+     * Get the next sequence number to use for an address.
+     *
+     * Returns MAX(ledgerSequence, lastSignedSequence + 1) to handle
+     * the race condition where ledger hasn't caught up yet.
+     *
+     * @param address - The XRPL account address
+     * @param ledgerSequence - Current sequence from ledger query
+     * @returns The sequence number to use for signing
+     */
+    getNextSequence(address: string, ledgerSequence: number): number;
+    /**
+     * Record that a transaction was signed with a specific sequence.
+     *
+     * Call this AFTER successful signing to track the sequence used.
+     * Only updates if the new sequence is greater than the current tracked value.
+     *
+     * @param address - The XRPL account address
+     * @param sequence - The sequence number that was signed
+     */
+    recordSignedSequence(address: string, sequence: number): void;
+    /**
+     * Clear the tracked sequence for an address.
+     *
+     * Useful when a transaction is known to have failed or been rejected,
+     * allowing the sequence to be reused.
+     *
+     * @param address - The XRPL account address
+     */
+    clearSequence(address: string): void;
+    /**
+     * Clear all expired entries from the tracker.
+     *
+     * Called periodically to prevent memory growth. Entries older than
+     * TTL are removed.
+     */
+    cleanup(): void;
+    /**
+     * Get debug info about tracked sequences.
+     *
+     * @returns Map of address to sequence info (for debugging/testing)
+     */
+    getDebugInfo(): Map<string, {
+        sequence: number;
+        ageMs: number;
+    }>;
+}
+/**
+ * Get or create the global sequence tracker instance.
+ *
+ * @param ttlMs - TTL for entries (only used on first call)
+ * @returns The global SequenceTracker instance
+ */
+declare function getSequenceTracker(ttlMs?: number): SequenceTracker;
+/**
+ * Reset the global sequence tracker (for testing).
+ */
+declare function resetSequenceTracker(): void;
+
+/**
  * Multi-Signature Orchestration
  *
  * Implements XRPL native multi-signature workflows for Tier 3 transactions.
@@ -3505,4 +3602,4 @@ declare function createServer(context: ServerContext, config?: ServerConfig): Se
  */
 declare function runServer(context: ServerContext, config?: ServerConfig): Promise<void>;
 
-export { AES_CONFIG, ARGON2_CONFIG, type AccountInfo, AccountNotFoundError, type ActorType, AgentWalletPolicy, type AlwaysCondition, type AndCondition, ApprovalTier, type AuditConfig, AuditEventType, AuditLogEntry, type AuditLogInput, AuditLogInputSchema, type AuditLogQuery, AuditLogger, type AuditLoggerConfig, type AuditLoggerOptions, type AuditSeverity, type AuditStorageStats, AuthenticationError, type BackupFormat, BackupFormatError, type BlocklistCheckResult, type ChainError, type ChainErrorType, type ChainState, ChainStateSchema, type ChainVerificationResult, type CompiledRule, type Condition, type ConditionEvaluator, type ConnectionConfig, ConnectionError, DEFAULT_AUDIT_LOGGER_CONFIG, DEFAULT_CONNECTION_CONFIG, DEFAULT_PASSWORD_POLICY, EXPLORER_URLS, type EncryptedBackup, type EncryptionMetadata, type EntropySource, type EventCategory, type ExplorerUrls, FAUCET_CONFIG, type FaucetConfig, type FieldCondition, GENESIS_CONSTANT, HMAC_ALGORITHM, HMAC_KEY_LENGTH, type HSMConfig, HashChain, type HashableEntry, HmacKeySchema, type IHmacKeyProvider, type IPolicyEngine, type ImportOptions, type InternalPolicy, InvalidKeyError, type KdfParams, type KeyAlgorithm, KeyDecryptionError, KeyEncryptionError, KeystoreCapacityError, type KeystoreConfig, KeystoreError, type KeystoreErrorCode, type KeystoreHealthResult, KeystoreInitializationError, type KeystoreProvider, type KeystoreProviderType, KeystoreReadError, KeystoreWriteError, type LimitCheckResult, type LimitConfig, LimitExceededError, type LimitState, LimitTracker, type LimitTrackerOptions, LocalKeystore, MaxReconnectAttemptsError, type MultiSignCompleteResult, MultiSignError, MultiSignOrchestrator, type MultiSignRequest, type MultiSignStatus, type MultiSignStore, NETWORK_ENDPOINTS, Network, type NetworkEndpoints, NetworkMismatchError, type NotCondition, type NotificationService, type OperationResult, type Operator, type OrCondition, type PasswordPolicy, type PolicyContext, PolicyEngine, type PolicyEngineOptions, PolicyError, PolicyEvaluationError, type PolicyInfo, PolicyIntegrityError, PolicyLoadError, type PolicyResult, type PolicyRule, PolicyValidationError, ProviderUnavailableError, type RuleAction, RuleEvaluator, type RuleEvaluatorOptions, type RuleResult, SecureBuffer, type ServerConfig, type ServerContext, type ServerInfo, type SignedTransaction, type SignerConfig, type SignerListConfig, type SignerState, SigningError, SigningService, type SimpleEvaluationResult, type SimpleTransactionContext, type SubmitOptions, type Tier, type TierFactor, type TransactionContext, TransactionHash, TransactionTimeoutError, TransactionType, type TxHistoryOptions, type ValueReference, type VerificationOptions, VerificationOptionsSchema, type WaitOptions, type WalletContext, type WalletCreateOptions, type WalletEntry, WalletExistsError, type WalletMetadata, WalletNotFoundError, type WalletPolicy, type WalletStatus, type WalletSummary, WeakPasswordError, XRPLAddress, type XRPLClientConfig, XRPLClientError, XRPLClientWrapper, type XRPLNetwork, type XRPLTransactionResult, checkBlocklist, computeStandaloneHash, createLimitTracker, createMemoryKeyProvider, createPolicyEngine, createServer, createTestPolicy, generateHmacKey, getAccountExplorerUrl, getBackupWebSocketUrls, getConnectionConfig, getDefaultAuditDir, getFaucetUrl, getLedgerExplorerUrl, getTransactionCategory, getTransactionExplorerUrl, getWebSocketUrl, isFaucetAvailable, isInAllowlist, isKeystoreError, isKeystoreErrorCode, isValidHmacKey, numericToTier, runServer, sanitizeForLogging, tierToNumeric };
+export { AES_CONFIG, ARGON2_CONFIG, type AccountInfo, AccountNotFoundError, type ActorType, AgentWalletPolicy, type AlwaysCondition, type AndCondition, ApprovalTier, type AuditConfig, AuditEventType, AuditLogEntry, type AuditLogInput, AuditLogInputSchema, type AuditLogQuery, AuditLogger, type AuditLoggerConfig, type AuditLoggerOptions, type AuditSeverity, type AuditStorageStats, AuthenticationError, type BackupFormat, BackupFormatError, type BlocklistCheckResult, type ChainError, type ChainErrorType, type ChainState, ChainStateSchema, type ChainVerificationResult, type CompiledRule, type Condition, type ConditionEvaluator, type ConnectionConfig, ConnectionError, DEFAULT_AUDIT_LOGGER_CONFIG, DEFAULT_CONNECTION_CONFIG, DEFAULT_PASSWORD_POLICY, EXPLORER_URLS, type EncryptedBackup, type EncryptionMetadata, type EntropySource, type EventCategory, type ExplorerUrls, FAUCET_CONFIG, type FaucetConfig, type FieldCondition, GENESIS_CONSTANT, HMAC_ALGORITHM, HMAC_KEY_LENGTH, type HSMConfig, HashChain, type HashableEntry, HmacKeySchema, type IHmacKeyProvider, type IPolicyEngine, type ImportOptions, type InternalPolicy, InvalidKeyError, type KdfParams, type KeyAlgorithm, KeyDecryptionError, KeyEncryptionError, KeystoreCapacityError, type KeystoreConfig, KeystoreError, type KeystoreErrorCode, type KeystoreHealthResult, KeystoreInitializationError, type KeystoreProvider, type KeystoreProviderType, KeystoreReadError, KeystoreWriteError, type LimitCheckResult, type LimitConfig, LimitExceededError, type LimitState, LimitTracker, type LimitTrackerOptions, LocalKeystore, MaxReconnectAttemptsError, type MultiSignCompleteResult, MultiSignError, MultiSignOrchestrator, type MultiSignRequest, type MultiSignStatus, type MultiSignStore, NETWORK_ENDPOINTS, Network, type NetworkEndpoints, NetworkMismatchError, type NotCondition, type NotificationService, type OperationResult, type Operator, type OrCondition, type PasswordPolicy, type PolicyContext, PolicyEngine, type PolicyEngineOptions, PolicyError, PolicyEvaluationError, type PolicyInfo, PolicyIntegrityError, PolicyLoadError, type PolicyResult, type PolicyRule, PolicyValidationError, ProviderUnavailableError, type RuleAction, RuleEvaluator, type RuleEvaluatorOptions, type RuleResult, SecureBuffer, SequenceTracker, type ServerConfig, type ServerContext, type ServerInfo, type SignedTransaction, type SignerConfig, type SignerListConfig, type SignerState, SigningError, SigningService, type SimpleEvaluationResult, type SimpleTransactionContext, type SubmitOptions, type Tier, type TierFactor, type TransactionContext, TransactionHash, TransactionTimeoutError, TransactionType, type TxHistoryOptions, type ValueReference, type VerificationOptions, VerificationOptionsSchema, type WaitOptions, type WalletContext, type WalletCreateOptions, type WalletEntry, WalletExistsError, type WalletMetadata, WalletNotFoundError, type WalletPolicy, type WalletStatus, type WalletSummary, WeakPasswordError, XRPLAddress, type XRPLClientConfig, XRPLClientError, XRPLClientWrapper, type XRPLNetwork, type XRPLTransactionResult, checkBlocklist, computeStandaloneHash, createLimitTracker, createMemoryKeyProvider, createPolicyEngine, createServer, createTestPolicy, generateHmacKey, getAccountExplorerUrl, getBackupWebSocketUrls, getConnectionConfig, getDefaultAuditDir, getFaucetUrl, getLedgerExplorerUrl, getSequenceTracker, getTransactionCategory, getTransactionExplorerUrl, getWebSocketUrl, isFaucetAvailable, isInAllowlist, isKeystoreError, isKeystoreErrorCode, isValidHmacKey, numericToTier, resetSequenceTracker, runServer, sanitizeForLogging, tierToNumeric };

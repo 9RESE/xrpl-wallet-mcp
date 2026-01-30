@@ -1082,14 +1082,29 @@ declare const WalletSignInputSchema: z.ZodObject<{
      * @example "Completing escrow for order #12345"
      */
     context: z.ZodOptional<z.ZodString>;
+    /**
+     * Whether to automatically fetch and apply the current sequence from ledger.
+     * When true (default), queries account_info and updates Sequence, Fee, and
+     * LastLedgerSequence in the transaction before signing.
+     *
+     * This prevents tefPAST_SEQ errors in multi-transaction workflows.
+     *
+     * Set to false only if you need to sign with a specific pre-set sequence
+     * (e.g., for offline signing or ticket-based transactions).
+     *
+     * @default true
+     */
+    auto_sequence: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
 }, "strip", z.ZodTypeAny, {
     wallet_address: string;
     unsigned_tx: string;
+    auto_sequence: boolean;
     context?: string | undefined;
 }, {
     wallet_address: string;
     unsigned_tx: string;
     context?: string | undefined;
+    auto_sequence?: boolean | undefined;
 }>;
 /**
  * Input schema for wallet_balance tool
@@ -2975,6 +2990,13 @@ declare const TxSubmitOutputSchema: z.ZodObject<{
         sequence: number;
         owner: string;
     }>>;
+    /**
+     * Next sequence number to use for this account (only on success)
+     * Use this for the next transaction instead of querying the ledger.
+     * This prevents tefPAST_SEQ race conditions in rapid multi-tx workflows.
+     * @since 2.1.0
+     */
+    next_sequence: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     tx_hash: string;
     result: {
@@ -2991,6 +3013,7 @@ declare const TxSubmitOutputSchema: z.ZodObject<{
         sequence: number;
         owner: string;
     } | undefined;
+    next_sequence?: number | undefined;
 }, {
     tx_hash: string;
     result: {
@@ -3007,6 +3030,7 @@ declare const TxSubmitOutputSchema: z.ZodObject<{
         sequence: number;
         owner: string;
     } | undefined;
+    next_sequence?: number | undefined;
 }>;
 /**
  * Decoded transaction fields
@@ -3889,14 +3913,29 @@ declare const InputSchemas: {
          * @example "Completing escrow for order #12345"
          */
         context: z.ZodOptional<z.ZodString>;
+        /**
+         * Whether to automatically fetch and apply the current sequence from ledger.
+         * When true (default), queries account_info and updates Sequence, Fee, and
+         * LastLedgerSequence in the transaction before signing.
+         *
+         * This prevents tefPAST_SEQ errors in multi-transaction workflows.
+         *
+         * Set to false only if you need to sign with a specific pre-set sequence
+         * (e.g., for offline signing or ticket-based transactions).
+         *
+         * @default true
+         */
+        auto_sequence: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
     }, "strip", z.ZodTypeAny, {
         wallet_address: string;
         unsigned_tx: string;
+        auto_sequence: boolean;
         context?: string | undefined;
     }, {
         wallet_address: string;
         unsigned_tx: string;
         context?: string | undefined;
+        auto_sequence?: boolean | undefined;
     }>;
     readonly wallet_balance: z.ZodObject<{
         /**
@@ -5267,6 +5306,13 @@ declare const OutputSchemas: {
             sequence: number;
             owner: string;
         }>>;
+        /**
+         * Next sequence number to use for this account (only on success)
+         * Use this for the next transaction instead of querying the ledger.
+         * This prevents tefPAST_SEQ race conditions in rapid multi-tx workflows.
+         * @since 2.1.0
+         */
+        next_sequence: z.ZodOptional<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
         tx_hash: string;
         result: {
@@ -5283,6 +5329,7 @@ declare const OutputSchemas: {
             sequence: number;
             owner: string;
         } | undefined;
+        next_sequence?: number | undefined;
     }, {
         tx_hash: string;
         result: {
@@ -5299,6 +5346,7 @@ declare const OutputSchemas: {
             sequence: number;
             owner: string;
         } | undefined;
+        next_sequence?: number | undefined;
     }>;
     readonly tx_decode: z.ZodObject<{
         /**

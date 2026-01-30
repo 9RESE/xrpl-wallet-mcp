@@ -222,6 +222,21 @@ Enhanced support for working with [xrpl-escrow-mcp](https://github.com/9RESE/xrp
 
 See [Network Timing Reference](./docs/user/reference/network-timing.md) for detailed timing considerations.
 
+### Sequence Race Condition Fix (v0.2.1)
+
+Resolved `tefPAST_SEQ` errors in rapid multi-transaction workflows (escrow create → finish):
+
+| Component | Fix | Description |
+|-----------|-----|-------------|
+| **SequenceTracker** | New class | Tracks signed sequences per address with 60-second TTL |
+| **wallet_sign** | `auto_sequence` | Uses `MAX(ledger_sequence, last_signed + 1)` to prevent stale sequences |
+| **tx_submit** | `next_sequence` | Returns next sequence to use, tracks after successful submission |
+| **Debug Logging** | Built-in | Sequence calculations logged for troubleshooting |
+
+**Key principle**: Never rely solely on ledger queries for sequence after submitting a transaction. The ledger may return stale data before the ledger closes (~3-5 seconds on testnet).
+
+See [ADR-013: Sequence Autofill](./docs/architecture/09-decisions/ADR-013-sequence-autofill.md) for technical details.
+
 ### Security Hardening (v0.1.1)
 
 Following a comprehensive security review, the following hardening measures were implemented:

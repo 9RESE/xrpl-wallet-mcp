@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { __commonJS, __require, AuditEventTypeSchema, TransactionTypeSchema, __toESM, InputSchemas } from './chunk-UHUYJFUT.js';
-export { AgentWalletPolicySchema, ApprovalTierSchema, AuditEventTypeSchema, AuditLogEntrySchema, DecodedTransactionSchema, DestinationModeSchema, DropsAmountOptionalZeroSchema, DropsAmountSchema, ErrorCodeSchema, ErrorResponseSchema, EscrowReferenceSchema, HexStringRawSchema, HexStringSchema, InputSchemas, LedgerIndexSchema, LimitStatusSchema, NetworkConfigInputSchema, NetworkConfigOutputSchema, NetworkSchema, NotificationEventSchema, OutputSchemas, PaginationMarkerSchema, PolicyDestinationsSchema, PolicyEscalationSchema, PolicyLimitsSchema, PolicyNotificationsSchema, PolicySetInputSchema, PolicySetOutputSchema, PolicyTimeControlsSchema, PolicyTransactionTypesSchema, PolicyViolationSchema, PublicKeySchema, RemainingLimitsSchema, SequenceNumberSchema, SignedTransactionBlobSchema, SignerEntrySchema, TimestampSchema, TransactionHashSchema, TransactionHistoryEntrySchema, TransactionResultSchema, TransactionTypeSchema, TxDecodeInputSchema, TxDecodeOutputSchema, TxSubmitInputSchema, TxSubmitOutputSchema, UnsignedTransactionBlobSchema, WalletBalanceInputSchema, WalletBalanceOutputSchema, WalletCreateInputSchema, WalletCreateOutputSchema, WalletFundInputSchema, WalletFundOutputSchema, WalletHistoryInputSchema, WalletHistoryOutputSchema, WalletIdSchema, WalletListEntrySchema, WalletListInputSchema, WalletListOutputSchema, WalletNameSchema, WalletPolicyCheckInputSchema, WalletPolicyCheckOutputSchema, WalletRotateInputSchema, WalletRotateOutputSchema, WalletSignApprovedOutputSchema, WalletSignInputSchema, WalletSignOutputSchema, WalletSignPendingOutputSchema, WalletSignRejectedOutputSchema, XRPLAddressSchema } from './chunk-UHUYJFUT.js';
+import { __commonJS, __require, AuditEventTypeSchema, TransactionTypeSchema, __toESM, InputSchemas } from './chunk-LA6C3VHS.js';
+export { AgentWalletPolicySchema, ApprovalTierSchema, AuditEventTypeSchema, AuditLogEntrySchema, DecodedTransactionSchema, DestinationModeSchema, DropsAmountOptionalZeroSchema, DropsAmountSchema, ErrorCodeSchema, ErrorResponseSchema, EscrowReferenceSchema, HexStringRawSchema, HexStringSchema, InputSchemas, LedgerIndexSchema, LimitStatusSchema, NetworkConfigInputSchema, NetworkConfigOutputSchema, NetworkSchema, NotificationEventSchema, OutputSchemas, PaginationMarkerSchema, PolicyDestinationsSchema, PolicyEscalationSchema, PolicyLimitsSchema, PolicyNotificationsSchema, PolicySetInputSchema, PolicySetOutputSchema, PolicyTimeControlsSchema, PolicyTransactionTypesSchema, PolicyViolationSchema, PublicKeySchema, RemainingLimitsSchema, SequenceNumberSchema, SignedTransactionBlobSchema, SignerEntrySchema, TimestampSchema, TransactionHashSchema, TransactionHistoryEntrySchema, TransactionResultSchema, TransactionTypeSchema, TxDecodeInputSchema, TxDecodeOutputSchema, TxSubmitInputSchema, TxSubmitOutputSchema, UnsignedTransactionBlobSchema, WalletBalanceInputSchema, WalletBalanceOutputSchema, WalletCreateInputSchema, WalletCreateOutputSchema, WalletFundInputSchema, WalletFundOutputSchema, WalletHistoryInputSchema, WalletHistoryOutputSchema, WalletIdSchema, WalletListEntrySchema, WalletListInputSchema, WalletListOutputSchema, WalletNameSchema, WalletPolicyCheckInputSchema, WalletPolicyCheckOutputSchema, WalletRotateInputSchema, WalletRotateOutputSchema, WalletSignApprovedOutputSchema, WalletSignInputSchema, WalletSignOutputSchema, WalletSignPendingOutputSchema, WalletSignRejectedOutputSchema, XRPLAddressSchema } from './chunk-LA6C3VHS.js';
 import * as crypto from 'crypto';
 import { createHmac, createHash, randomUUID } from 'crypto';
 import { z } from 'zod';
@@ -408,9 +408,9 @@ var require_lib = __commonJS({
     function chain(...args) {
       const id = (a) => a;
       const wrap = (a, b) => (c) => a(b(c));
-      const encode2 = args.map((x) => x.encode).reduceRight(wrap, id);
+      const encode3 = args.map((x) => x.encode).reduceRight(wrap, id);
       const decode7 = args.map((x) => x.decode).reduce(wrap, id);
-      return { encode: encode2, decode: decode7 };
+      return { encode: encode3, decode: decode7 };
     }
     // @__NO_SIDE_EFFECTS__
     function alphabet(letters) {
@@ -763,7 +763,7 @@ var require_lib = __commonJS({
       const fromWords = _words.decode;
       const toWords = _words.encode;
       const fromWordsUnsafe = unsafeWrapper(fromWords);
-      function encode2(prefix, words, limit = 90) {
+      function encode3(prefix, words, limit = 90) {
         astr("bech32.encode prefix", prefix);
         if (isBytes(words))
           words = Array.from(words);
@@ -805,10 +805,10 @@ var require_lib = __commonJS({
         return { prefix, words, bytes: fromWords(words) };
       }
       function encodeFromBytes(prefix, bytes) {
-        return encode2(prefix, toWords(bytes));
+        return encode3(prefix, toWords(bytes));
       }
       return {
-        encode: encode2,
+        encode: encode3,
         decode: decode7,
         encodeFromBytes,
         decodeToBytes,
@@ -10312,6 +10312,110 @@ var XRPLClientWrapper = class {
     };
   }
 };
+
+// src/xrpl/sequence-tracker.ts
+var SequenceTracker = class {
+  /** Map of address -> last signed sequence entry */
+  sequences = /* @__PURE__ */ new Map();
+  /** TTL for sequence entries in milliseconds (default: 60 seconds) */
+  ttlMs;
+  /**
+   * Create a new SequenceTracker.
+   *
+   * @param ttlMs - Time-to-live for entries in milliseconds (default: 60000)
+   */
+  constructor(ttlMs = 6e4) {
+    this.ttlMs = ttlMs;
+  }
+  /**
+   * Get the next sequence number to use for an address.
+   *
+   * Returns MAX(ledgerSequence, lastSignedSequence + 1) to handle
+   * the race condition where ledger hasn't caught up yet.
+   *
+   * @param address - The XRPL account address
+   * @param ledgerSequence - Current sequence from ledger query
+   * @returns The sequence number to use for signing
+   */
+  getNextSequence(address, ledgerSequence) {
+    const entry = this.sequences.get(address);
+    const now = Date.now();
+    if (!entry || now - entry.timestamp > this.ttlMs) {
+      return ledgerSequence;
+    }
+    const trackedNext = entry.sequence + 1;
+    return Math.max(ledgerSequence, trackedNext);
+  }
+  /**
+   * Record that a transaction was signed with a specific sequence.
+   *
+   * Call this AFTER successful signing to track the sequence used.
+   * Only updates if the new sequence is greater than the current tracked value.
+   *
+   * @param address - The XRPL account address
+   * @param sequence - The sequence number that was signed
+   */
+  recordSignedSequence(address, sequence) {
+    const existing = this.sequences.get(address);
+    if (!existing || sequence > existing.sequence) {
+      this.sequences.set(address, {
+        sequence,
+        timestamp: Date.now()
+      });
+    }
+  }
+  /**
+   * Clear the tracked sequence for an address.
+   *
+   * Useful when a transaction is known to have failed or been rejected,
+   * allowing the sequence to be reused.
+   *
+   * @param address - The XRPL account address
+   */
+  clearSequence(address) {
+    this.sequences.delete(address);
+  }
+  /**
+   * Clear all expired entries from the tracker.
+   *
+   * Called periodically to prevent memory growth. Entries older than
+   * TTL are removed.
+   */
+  cleanup() {
+    const now = Date.now();
+    for (const [address, entry] of this.sequences.entries()) {
+      if (now - entry.timestamp > this.ttlMs) {
+        this.sequences.delete(address);
+      }
+    }
+  }
+  /**
+   * Get debug info about tracked sequences.
+   *
+   * @returns Map of address to sequence info (for debugging/testing)
+   */
+  getDebugInfo() {
+    const now = Date.now();
+    const info = /* @__PURE__ */ new Map();
+    for (const [address, entry] of this.sequences.entries()) {
+      info.set(address, {
+        sequence: entry.sequence,
+        ageMs: now - entry.timestamp
+      });
+    }
+    return info;
+  }
+};
+var globalTracker = null;
+function getSequenceTracker(ttlMs) {
+  if (!globalTracker) {
+    globalTracker = new SequenceTracker(ttlMs);
+  }
+  return globalTracker;
+}
+function resetSequenceTracker() {
+  globalTracker = null;
+}
 var SigningError = class extends Error {
   constructor(code, message, details) {
     super(message);
@@ -11118,13 +11222,54 @@ async function handleWalletCreate(context, input) {
   };
 }
 async function handleWalletSign(context, input) {
-  const { keystore, policyEngine, signingService, auditLogger } = context;
+  const { keystore, policyEngine, signingService, auditLogger, xrplClient } = context;
   const wallets = await keystore.listWallets();
   const wallet = wallets.find((w) => w.address === input.wallet_address);
   if (!wallet) {
     throw new Error(`Wallet not found: ${input.wallet_address}`);
   }
-  const decoded = decode(input.unsigned_tx);
+  let decoded = decode(input.unsigned_tx);
+  let transactionBlob = input.unsigned_tx;
+  let usedSequence;
+  if (input.auto_sequence !== false) {
+    try {
+      const sequenceTracker = getSequenceTracker();
+      const accountInfo = await xrplClient.getAccountInfo(input.wallet_address);
+      const ledgerSequence = accountInfo.sequence;
+      const nextSequence = sequenceTracker.getNextSequence(input.wallet_address, ledgerSequence);
+      const trackerInfo = sequenceTracker.getDebugInfo().get(input.wallet_address);
+      console.error(
+        `[wallet_sign] Sequence calculation for ${input.wallet_address}: ledger=${ledgerSequence}, tracked=${trackerInfo?.sequence ?? "none"}, using=${nextSequence}`
+      );
+      let needsReencode = false;
+      if (decoded.Sequence !== nextSequence) {
+        console.error(
+          `[wallet_sign] Updating sequence from ${decoded.Sequence} to ${nextSequence}`
+        );
+        decoded.Sequence = nextSequence;
+        needsReencode = true;
+      }
+      usedSequence = decoded.Sequence;
+      if (!decoded.Fee) {
+        const fee = await xrplClient.getFee();
+        decoded.Fee = fee;
+        needsReencode = true;
+      }
+      if (!decoded.LastLedgerSequence) {
+        const currentLedger = await xrplClient.getCurrentLedgerIndex();
+        decoded.LastLedgerSequence = currentLedger + 20;
+        needsReencode = true;
+      }
+      if (needsReencode) {
+        transactionBlob = encode(decoded);
+      }
+    } catch (error) {
+      console.warn(
+        "[wallet_sign] Failed to autofill sequence:",
+        error instanceof Error ? error.message : "Unknown error"
+      );
+    }
+  }
   const transactionType = decoded["TransactionType"];
   const destination = "Destination" in decoded ? decoded["Destination"] : void 0;
   const amountField = "Amount" in decoded ? decoded["Amount"] : void 0;
@@ -11179,7 +11324,7 @@ async function handleWalletSign(context, input) {
   const password = getWalletPassword();
   const signed = await signingService.sign(
     wallet.walletId,
-    input.unsigned_tx,
+    transactionBlob,
     password
   );
   await auditLogger.log({
@@ -11193,6 +11338,10 @@ async function handleWalletSign(context, input) {
     policy_decision: "allowed",
     ...input.context ? { context: input.context } : {}
   });
+  if (usedSequence !== void 0) {
+    const sequenceTracker = getSequenceTracker();
+    sequenceTracker.recordSignedSequence(input.wallet_address, usedSequence);
+  }
   const limitState = policyEngine.getLimitState();
   policyEngine.getPolicyInfo();
   const dailyTransactionsUsed = limitState.daily.transactionCount;
@@ -11643,29 +11792,29 @@ function analyzePolicyChange(previousPolicyId, newPolicy) {
 function extractTransactionMetadata(decoded) {
   const txType = decoded.TransactionType;
   const sequenceUsed = typeof decoded.Sequence === "number" ? decoded.Sequence : void 0;
+  const account = decoded.Account;
   let escrowReference;
-  if (txType === "EscrowCreate" && sequenceUsed !== void 0) {
-    const owner = decoded.Account;
-    if (owner) {
-      escrowReference = {
-        owner,
-        sequence: sequenceUsed
-      };
-    }
+  if (txType === "EscrowCreate" && sequenceUsed !== void 0 && account) {
+    escrowReference = {
+      owner: account,
+      sequence: sequenceUsed
+    };
   }
-  return { txType, sequenceUsed, escrowReference };
+  return { txType, sequenceUsed, account, escrowReference };
 }
 async function handleTxSubmit(context, input) {
   const { xrplClient, auditLogger } = context;
   const submittedAt = (/* @__PURE__ */ new Date()).toISOString();
   let txType;
   let sequenceUsed;
+  let account;
   let escrowReference;
   try {
     const decoded = decode(input.signed_tx);
     const metadata = extractTransactionMetadata(decoded);
     txType = metadata.txType;
     sequenceUsed = metadata.sequenceUsed;
+    account = metadata.account;
     escrowReference = metadata.escrowReference;
   } catch (decodeError) {
     console.warn("[tx_submit] Could not decode transaction for metadata:", decodeError);
@@ -11680,6 +11829,15 @@ async function handleTxSubmit(context, input) {
     transaction_type: txType,
     context: escrowReference ? `EscrowCreate: owner=${escrowReference.owner}, sequence=${escrowReference.sequence}` : void 0
   });
+  let nextSequence;
+  if (result.resultCode === "tesSUCCESS" && account && sequenceUsed !== void 0) {
+    const sequenceTracker = getSequenceTracker();
+    sequenceTracker.recordSignedSequence(account, sequenceUsed);
+    nextSequence = sequenceUsed + 1;
+    console.error(
+      `[tx_submit] Recorded sequence ${sequenceUsed} for ${account}, next tx should use ${nextSequence}`
+    );
+  }
   const response = {
     tx_hash: result.hash,
     result: {
@@ -11692,7 +11850,8 @@ async function handleTxSubmit(context, input) {
     submitted_at: submittedAt,
     validated_at: result.validated ? (/* @__PURE__ */ new Date()).toISOString() : void 0,
     tx_type: txType,
-    sequence_used: sequenceUsed
+    sequence_used: sequenceUsed,
+    next_sequence: nextSequence
   };
   if (escrowReference && result.resultCode === "tesSUCCESS") {
     response.escrow_reference = escrowReference;
@@ -11738,13 +11897,18 @@ var TOOLS = [
   },
   {
     name: "wallet_sign",
-    description: "Sign a transaction with policy enforcement. Returns signed blob, pending approval, or rejection.",
+    description: "Sign a transaction with policy enforcement. Automatically fetches fresh sequence from ledger to prevent tefPAST_SEQ errors. Returns signed blob, pending approval, or rejection.",
     inputSchema: {
       type: "object",
       properties: {
         wallet_address: { type: "string" },
         unsigned_tx: { type: "string" },
-        context: { type: "string" }
+        context: { type: "string" },
+        auto_sequence: {
+          type: "boolean",
+          default: true,
+          description: "Autofill sequence/fee/LastLedgerSequence from ledger before signing. Prevents tefPAST_SEQ in multi-tx workflows."
+        }
       },
       required: ["wallet_address", "unsigned_tx"]
     }
@@ -12003,6 +12167,6 @@ async function runServer(context, config) {
   (*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) *)
 */
 
-export { AES_CONFIG2 as AES_CONFIG, ARGON2_CONFIG2 as ARGON2_CONFIG, AccountNotFoundError, AuditLogInputSchema, AuditLogger, AuthenticationError, BackupFormatError, ChainStateSchema, ConnectionError, DEFAULT_AUDIT_LOGGER_CONFIG, DEFAULT_CONNECTION_CONFIG, DEFAULT_PASSWORD_POLICY2 as DEFAULT_PASSWORD_POLICY, EXPLORER_URLS, FAUCET_CONFIG, GENESIS_CONSTANT, HMAC_ALGORITHM, HMAC_KEY_LENGTH, HashChain, HmacKeySchema, InvalidKeyError, KeyDecryptionError, KeyEncryptionError, KeystoreCapacityError, KeystoreError, KeystoreInitializationError, KeystoreReadError, KeystoreWriteError, LimitExceededError, LimitTracker, LocalKeystore, MaxReconnectAttemptsError, MultiSignError, MultiSignOrchestrator, NETWORK_ENDPOINTS, NetworkMismatchError, PolicyEngine, PolicyError, PolicyEvaluationError, PolicyIntegrityError, PolicyLoadError, PolicyValidationError, ProviderUnavailableError, RuleEvaluator, SecureBuffer, SigningError, SigningService, TransactionTimeoutError, VerificationOptionsSchema, WalletExistsError, WalletNotFoundError, WeakPasswordError, XRPLClientError, XRPLClientWrapper, checkBlocklist, computeStandaloneHash, createLimitTracker, createMemoryKeyProvider, createPolicyEngine, createServer, createTestPolicy, generateHmacKey, getAccountExplorerUrl, getBackupWebSocketUrls, getConnectionConfig, getDefaultAuditDir, getFaucetUrl, getLedgerExplorerUrl, getTransactionCategory, getTransactionExplorerUrl, getWebSocketUrl, isFaucetAvailable, isInAllowlist, isKeystoreError, isKeystoreErrorCode, isValidHmacKey, numericToTier, runServer, sanitizeForLogging, tierToNumeric };
+export { AES_CONFIG2 as AES_CONFIG, ARGON2_CONFIG2 as ARGON2_CONFIG, AccountNotFoundError, AuditLogInputSchema, AuditLogger, AuthenticationError, BackupFormatError, ChainStateSchema, ConnectionError, DEFAULT_AUDIT_LOGGER_CONFIG, DEFAULT_CONNECTION_CONFIG, DEFAULT_PASSWORD_POLICY2 as DEFAULT_PASSWORD_POLICY, EXPLORER_URLS, FAUCET_CONFIG, GENESIS_CONSTANT, HMAC_ALGORITHM, HMAC_KEY_LENGTH, HashChain, HmacKeySchema, InvalidKeyError, KeyDecryptionError, KeyEncryptionError, KeystoreCapacityError, KeystoreError, KeystoreInitializationError, KeystoreReadError, KeystoreWriteError, LimitExceededError, LimitTracker, LocalKeystore, MaxReconnectAttemptsError, MultiSignError, MultiSignOrchestrator, NETWORK_ENDPOINTS, NetworkMismatchError, PolicyEngine, PolicyError, PolicyEvaluationError, PolicyIntegrityError, PolicyLoadError, PolicyValidationError, ProviderUnavailableError, RuleEvaluator, SecureBuffer, SequenceTracker, SigningError, SigningService, TransactionTimeoutError, VerificationOptionsSchema, WalletExistsError, WalletNotFoundError, WeakPasswordError, XRPLClientError, XRPLClientWrapper, checkBlocklist, computeStandaloneHash, createLimitTracker, createMemoryKeyProvider, createPolicyEngine, createServer, createTestPolicy, generateHmacKey, getAccountExplorerUrl, getBackupWebSocketUrls, getConnectionConfig, getDefaultAuditDir, getFaucetUrl, getLedgerExplorerUrl, getSequenceTracker, getTransactionCategory, getTransactionExplorerUrl, getWebSocketUrl, isFaucetAvailable, isInAllowlist, isKeystoreError, isKeystoreErrorCode, isValidHmacKey, numericToTier, resetSequenceTracker, runServer, sanitizeForLogging, tierToNumeric };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

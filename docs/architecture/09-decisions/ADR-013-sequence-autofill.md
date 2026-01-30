@@ -122,6 +122,29 @@ if (input.auto_sequence !== false) {
 
 // After successful signing:
 sequenceTracker.recordSignedSequence(input.wallet_address, usedSequence);
+
+// In tx-submit.ts (dual tracking for belt-and-suspenders):
+if (result.resultCode === 'tesSUCCESS' && account && sequenceUsed !== undefined) {
+  const sequenceTracker = getSequenceTracker();
+  sequenceTracker.recordSignedSequence(account, sequenceUsed);
+  nextSequence = sequenceUsed + 1;  // Returned in response
+}
+
+// tx_submit response includes:
+{
+  tx_hash: "...",
+  sequence_used: 100,
+  next_sequence: 101  // Use this for next TX instead of ledger query!
+}
+```
+
+### Debug Logging
+
+Both `wallet_sign` and `tx_submit` include debug logging for sequence tracking:
+
+```
+[wallet_sign] Sequence calculation for rXXX: ledger=100, tracked=100, using=101
+[tx_submit] Recorded sequence 101 for rXXX, next tx should use 102
 ```
 
 ## Consequences

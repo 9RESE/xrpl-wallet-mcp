@@ -24,6 +24,8 @@ This directory contains Architecture Decision Records (ADRs) documenting the key
 | [ADR-009](ADR-009-transaction-scope.md) | Transaction Scope | Accepted | Support ALL XRPL transaction types |
 | [ADR-010](ADR-010-network-isolation.md) | Network Isolation | Accepted | Separate keystores per network (mainnet/testnet/devnet) |
 | [ADR-011](ADR-011-security-remediation.md) | Security Remediation | Accepted | Phase 1 security hardening (19 issues fixed) |
+| [ADR-012](ADR-012-escrow-integration-improvements.md) | Escrow Integration | Accepted | Timing-aware parameters for MCP-to-MCP workflows |
+| [ADR-013](ADR-013-sequence-autofill.md) | Sequence Autofill | Accepted | Local sequence tracking to prevent tefPAST_SEQ race conditions |
 
 ## ADR Status Definitions
 
@@ -72,6 +74,22 @@ ADR-008 (Integration Design)
     +-- evaluates via --> ADR-003 (Policy Engine)
     |
     +-- supports --> ADR-009 (All TX Types)
+    |
+    +-- enhanced by --> ADR-012 (Escrow Integration)
+
+ADR-012 (Escrow Integration)
+    |
+    +-- addresses --> ADR-013 (Sequence Autofill) for multi-tx workflows
+    |
+    +-- extends --> ADR-008 (Integration Design)
+
+ADR-013 (Sequence Autofill)
+    |
+    +-- prevents --> tefPAST_SEQ race conditions
+    |
+    +-- uses --> SequenceTracker singleton
+    |
+    +-- tracks in --> wallet_sign, tx_submit
 ```
 
 ## Security Requirements Mapping
@@ -91,6 +109,8 @@ Each ADR addresses specific security requirements from the [Security Requirement
 | ADR-009 | Transaction type policies |
 | ADR-010 | Network safety guardrails |
 | ADR-011 | AUTH-001, KEY-002, AUDIT-001, VAL-004 (security hardening) |
+| ADR-012 | Integration timing, ledger consistency |
+| ADR-013 | Sequence management, race condition prevention |
 
 ## Creating New ADRs
 
@@ -174,3 +194,4 @@ Use the following template when creating new ADRs:
 |---------|------|--------|---------|
 | 1.0.0 | 2026-01-28 | Tech Lead | Initial ADR index with 10 ADRs |
 | 1.1.0 | 2026-01-28 | Code Review Agent | Added ADR-011 Security Remediation |
+| 1.2.0 | 2026-01-29 | - | Added ADR-012 Escrow Integration, ADR-013 Sequence Autofill |
