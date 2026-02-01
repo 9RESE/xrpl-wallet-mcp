@@ -214,13 +214,13 @@ declare const PolicyDestinationsSchema: z.ZodObject<{
     allow_new_destinations: boolean;
     allowlist?: string[] | undefined;
     blocklist?: string[] | undefined;
-    new_destination_tier?: 3 | 2 | undefined;
+    new_destination_tier?: 2 | 3 | undefined;
 }, {
     mode: "allowlist" | "blocklist" | "open";
     allow_new_destinations: boolean;
     allowlist?: string[] | undefined;
     blocklist?: string[] | undefined;
-    new_destination_tier?: 3 | 2 | undefined;
+    new_destination_tier?: 2 | 3 | undefined;
 }>;
 /**
  * Transaction type controls
@@ -322,12 +322,12 @@ declare const PolicyEscalationSchema: z.ZodObject<{
     delay_seconds: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     amount_threshold_drops: string;
-    new_destination: 3 | 2;
+    new_destination: 2 | 3;
     account_settings: 3;
     delay_seconds?: number | undefined;
 }, {
     amount_threshold_drops: string;
-    new_destination: 3 | 2;
+    new_destination: 2 | 3;
     account_settings: 3;
     delay_seconds?: number | undefined;
 }>;
@@ -438,13 +438,13 @@ declare const AgentWalletPolicySchema: z.ZodObject<{
         allow_new_destinations: boolean;
         allowlist?: string[] | undefined;
         blocklist?: string[] | undefined;
-        new_destination_tier?: 3 | 2 | undefined;
+        new_destination_tier?: 2 | 3 | undefined;
     }, {
         mode: "allowlist" | "blocklist" | "open";
         allow_new_destinations: boolean;
         allowlist?: string[] | undefined;
         blocklist?: string[] | undefined;
-        new_destination_tier?: 3 | 2 | undefined;
+        new_destination_tier?: 2 | 3 | undefined;
     }>;
     /**
      * Transaction type restrictions
@@ -543,12 +543,12 @@ declare const AgentWalletPolicySchema: z.ZodObject<{
         delay_seconds: z.ZodOptional<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
         amount_threshold_drops: string;
-        new_destination: 3 | 2;
+        new_destination: 2 | 3;
         account_settings: 3;
         delay_seconds?: number | undefined;
     }, {
         amount_threshold_drops: string;
-        new_destination: 3 | 2;
+        new_destination: 2 | 3;
         account_settings: 3;
         delay_seconds?: number | undefined;
     }>;
@@ -586,7 +586,7 @@ declare const AgentWalletPolicySchema: z.ZodObject<{
         allow_new_destinations: boolean;
         allowlist?: string[] | undefined;
         blocklist?: string[] | undefined;
-        new_destination_tier?: 3 | 2 | undefined;
+        new_destination_tier?: 2 | 3 | undefined;
     };
     transaction_types: {
         allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -595,7 +595,7 @@ declare const AgentWalletPolicySchema: z.ZodObject<{
     };
     escalation: {
         amount_threshold_drops: string;
-        new_destination: 3 | 2;
+        new_destination: 2 | 3;
         account_settings: 3;
         delay_seconds?: number | undefined;
     };
@@ -625,7 +625,7 @@ declare const AgentWalletPolicySchema: z.ZodObject<{
         allow_new_destinations: boolean;
         allowlist?: string[] | undefined;
         blocklist?: string[] | undefined;
-        new_destination_tier?: 3 | 2 | undefined;
+        new_destination_tier?: 2 | 3 | undefined;
     };
     transaction_types: {
         allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -634,7 +634,7 @@ declare const AgentWalletPolicySchema: z.ZodObject<{
     };
     escalation: {
         amount_threshold_drops: string;
-        new_destination: 3 | 2;
+        new_destination: 2 | 3;
         account_settings: 3;
         delay_seconds?: number | undefined;
     };
@@ -743,13 +743,13 @@ declare const WalletCreateInputSchema: z.ZodObject<{
             allow_new_destinations: boolean;
             allowlist?: string[] | undefined;
             blocklist?: string[] | undefined;
-            new_destination_tier?: 3 | 2 | undefined;
+            new_destination_tier?: 2 | 3 | undefined;
         }, {
             mode: "allowlist" | "blocklist" | "open";
             allow_new_destinations: boolean;
             allowlist?: string[] | undefined;
             blocklist?: string[] | undefined;
-            new_destination_tier?: 3 | 2 | undefined;
+            new_destination_tier?: 2 | 3 | undefined;
         }>;
         /**
          * Transaction type restrictions
@@ -848,12 +848,12 @@ declare const WalletCreateInputSchema: z.ZodObject<{
             delay_seconds: z.ZodOptional<z.ZodNumber>;
         }, "strip", z.ZodTypeAny, {
             amount_threshold_drops: string;
-            new_destination: 3 | 2;
+            new_destination: 2 | 3;
             account_settings: 3;
             delay_seconds?: number | undefined;
         }, {
             amount_threshold_drops: string;
-            new_destination: 3 | 2;
+            new_destination: 2 | 3;
             account_settings: 3;
             delay_seconds?: number | undefined;
         }>;
@@ -891,7 +891,7 @@ declare const WalletCreateInputSchema: z.ZodObject<{
             allow_new_destinations: boolean;
             allowlist?: string[] | undefined;
             blocklist?: string[] | undefined;
-            new_destination_tier?: 3 | 2 | undefined;
+            new_destination_tier?: 2 | 3 | undefined;
         };
         transaction_types: {
             allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -900,7 +900,7 @@ declare const WalletCreateInputSchema: z.ZodObject<{
         };
         escalation: {
             amount_threshold_drops: string;
-            new_destination: 3 | 2;
+            new_destination: 2 | 3;
             account_settings: 3;
             delay_seconds?: number | undefined;
         };
@@ -930,7 +930,7 @@ declare const WalletCreateInputSchema: z.ZodObject<{
             allow_new_destinations: boolean;
             allowlist?: string[] | undefined;
             blocklist?: string[] | undefined;
-            new_destination_tier?: 3 | 2 | undefined;
+            new_destination_tier?: 2 | 3 | undefined;
         };
         transaction_types: {
             allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -939,7 +939,7 @@ declare const WalletCreateInputSchema: z.ZodObject<{
         };
         escalation: {
             amount_threshold_drops: string;
-            new_destination: 3 | 2;
+            new_destination: 2 | 3;
             account_settings: 3;
             delay_seconds?: number | undefined;
         };
@@ -986,7 +986,7 @@ declare const WalletCreateInputSchema: z.ZodObject<{
             allow_new_destinations: boolean;
             allowlist?: string[] | undefined;
             blocklist?: string[] | undefined;
-            new_destination_tier?: 3 | 2 | undefined;
+            new_destination_tier?: 2 | 3 | undefined;
         };
         transaction_types: {
             allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -995,7 +995,7 @@ declare const WalletCreateInputSchema: z.ZodObject<{
         };
         escalation: {
             amount_threshold_drops: string;
-            new_destination: 3 | 2;
+            new_destination: 2 | 3;
             account_settings: 3;
             delay_seconds?: number | undefined;
         };
@@ -1031,7 +1031,7 @@ declare const WalletCreateInputSchema: z.ZodObject<{
             allow_new_destinations: boolean;
             allowlist?: string[] | undefined;
             blocklist?: string[] | undefined;
-            new_destination_tier?: 3 | 2 | undefined;
+            new_destination_tier?: 2 | 3 | undefined;
         };
         transaction_types: {
             allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -1040,7 +1040,7 @@ declare const WalletCreateInputSchema: z.ZodObject<{
         };
         escalation: {
             amount_threshold_drops: string;
-            new_destination: 3 | 2;
+            new_destination: 2 | 3;
             account_settings: 3;
             delay_seconds?: number | undefined;
         };
@@ -1060,6 +1060,34 @@ declare const WalletCreateInputSchema: z.ZodObject<{
     wallet_name?: string | undefined;
     funding_source?: string | undefined;
     initial_funding_drops?: string | undefined;
+}>;
+/**
+ * Input schema for wallet_import tool
+ *
+ * Imports an existing XRPL wallet from a seed.
+ * Uses a simple default policy - much easier than wallet_create.
+ */
+declare const WalletImportInputSchema: z.ZodObject<{
+    /**
+     * XRPL seed (starts with 's')
+     */
+    seed: z.ZodString;
+    /**
+     * Target network for the wallet
+     */
+    network: z.ZodEnum<["mainnet", "testnet", "devnet"]>;
+    /**
+     * Human-readable wallet name (optional)
+     */
+    wallet_name: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    network: "mainnet" | "testnet" | "devnet";
+    seed: string;
+    wallet_name?: string | undefined;
+}, {
+    network: "mainnet" | "testnet" | "devnet";
+    seed: string;
+    wallet_name?: string | undefined;
 }>;
 /**
  * Input schema for wallet_sign tool
@@ -1340,13 +1368,13 @@ declare const PolicySetInputSchema: z.ZodObject<{
             allow_new_destinations: boolean;
             allowlist?: string[] | undefined;
             blocklist?: string[] | undefined;
-            new_destination_tier?: 3 | 2 | undefined;
+            new_destination_tier?: 2 | 3 | undefined;
         }, {
             mode: "allowlist" | "blocklist" | "open";
             allow_new_destinations: boolean;
             allowlist?: string[] | undefined;
             blocklist?: string[] | undefined;
-            new_destination_tier?: 3 | 2 | undefined;
+            new_destination_tier?: 2 | 3 | undefined;
         }>;
         /**
          * Transaction type restrictions
@@ -1445,12 +1473,12 @@ declare const PolicySetInputSchema: z.ZodObject<{
             delay_seconds: z.ZodOptional<z.ZodNumber>;
         }, "strip", z.ZodTypeAny, {
             amount_threshold_drops: string;
-            new_destination: 3 | 2;
+            new_destination: 2 | 3;
             account_settings: 3;
             delay_seconds?: number | undefined;
         }, {
             amount_threshold_drops: string;
-            new_destination: 3 | 2;
+            new_destination: 2 | 3;
             account_settings: 3;
             delay_seconds?: number | undefined;
         }>;
@@ -1488,7 +1516,7 @@ declare const PolicySetInputSchema: z.ZodObject<{
             allow_new_destinations: boolean;
             allowlist?: string[] | undefined;
             blocklist?: string[] | undefined;
-            new_destination_tier?: 3 | 2 | undefined;
+            new_destination_tier?: 2 | 3 | undefined;
         };
         transaction_types: {
             allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -1497,7 +1525,7 @@ declare const PolicySetInputSchema: z.ZodObject<{
         };
         escalation: {
             amount_threshold_drops: string;
-            new_destination: 3 | 2;
+            new_destination: 2 | 3;
             account_settings: 3;
             delay_seconds?: number | undefined;
         };
@@ -1527,7 +1555,7 @@ declare const PolicySetInputSchema: z.ZodObject<{
             allow_new_destinations: boolean;
             allowlist?: string[] | undefined;
             blocklist?: string[] | undefined;
-            new_destination_tier?: 3 | 2 | undefined;
+            new_destination_tier?: 2 | 3 | undefined;
         };
         transaction_types: {
             allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -1536,7 +1564,7 @@ declare const PolicySetInputSchema: z.ZodObject<{
         };
         escalation: {
             amount_threshold_drops: string;
-            new_destination: 3 | 2;
+            new_destination: 2 | 3;
             account_settings: 3;
             delay_seconds?: number | undefined;
         };
@@ -1572,7 +1600,7 @@ declare const PolicySetInputSchema: z.ZodObject<{
             allow_new_destinations: boolean;
             allowlist?: string[] | undefined;
             blocklist?: string[] | undefined;
-            new_destination_tier?: 3 | 2 | undefined;
+            new_destination_tier?: 2 | 3 | undefined;
         };
         transaction_types: {
             allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -1581,7 +1609,7 @@ declare const PolicySetInputSchema: z.ZodObject<{
         };
         escalation: {
             amount_threshold_drops: string;
-            new_destination: 3 | 2;
+            new_destination: 2 | 3;
             account_settings: 3;
             delay_seconds?: number | undefined;
         };
@@ -1615,7 +1643,7 @@ declare const PolicySetInputSchema: z.ZodObject<{
             allow_new_destinations: boolean;
             allowlist?: string[] | undefined;
             blocklist?: string[] | undefined;
-            new_destination_tier?: 3 | 2 | undefined;
+            new_destination_tier?: 2 | 3 | undefined;
         };
         transaction_types: {
             allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -1624,7 +1652,7 @@ declare const PolicySetInputSchema: z.ZodObject<{
         };
         escalation: {
             amount_threshold_drops: string;
-            new_destination: 3 | 2;
+            new_destination: 2 | 3;
             account_settings: 3;
             delay_seconds?: number | undefined;
         };
@@ -1773,16 +1801,16 @@ declare const WalletCreateOutputSchema: z.ZodObject<{
      */
     created_at: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    network: "mainnet" | "testnet" | "devnet";
     policy_id: string;
+    network: "mainnet" | "testnet" | "devnet";
     address: string;
     regular_key_public: string;
     master_key_backup: string;
     wallet_id: string;
     created_at: string;
 }, {
-    network: "mainnet" | "testnet" | "devnet";
     policy_id: string;
+    network: "mainnet" | "testnet" | "devnet";
     address: string;
     regular_key_public: string;
     master_key_backup: string;
@@ -1892,7 +1920,7 @@ declare const WalletSignApprovedOutputSchema: z.ZodObject<{
     status: "approved";
     signed_tx: string;
     tx_hash: string;
-    policy_tier: 3 | 1 | 2 | 4;
+    policy_tier: 1 | 2 | 3 | 4;
     limits_after: {
         daily_remaining_drops: string;
         hourly_tx_remaining: number;
@@ -1903,7 +1931,7 @@ declare const WalletSignApprovedOutputSchema: z.ZodObject<{
     status: "approved";
     signed_tx: string;
     tx_hash: string;
-    policy_tier: 3 | 1 | 2 | 4;
+    policy_tier: 1 | 2 | 3 | 4;
     limits_after: {
         daily_remaining_drops: string;
         hourly_tx_remaining: number;
@@ -1942,14 +1970,14 @@ declare const WalletSignPendingOutputSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     status: "pending_approval";
     reason: "new_destination" | "exceeds_autonomous_limit" | "restricted_tx_type" | "outside_active_hours" | "requires_cosign";
-    policy_tier: 3 | 1 | 2 | 4;
+    policy_tier: 1 | 2 | 3 | 4;
     approval_id: string;
     expires_at: string;
     approval_url?: string | undefined;
 }, {
     status: "pending_approval";
     reason: "new_destination" | "exceeds_autonomous_limit" | "restricted_tx_type" | "outside_active_hours" | "requires_cosign";
-    policy_tier: 3 | 1 | 2 | 4;
+    policy_tier: 1 | 2 | 3 | 4;
     approval_id: string;
     expires_at: string;
     approval_url?: string | undefined;
@@ -2067,7 +2095,7 @@ declare const WalletSignOutputSchema: z.ZodDiscriminatedUnion<"status", [z.ZodOb
     status: "approved";
     signed_tx: string;
     tx_hash: string;
-    policy_tier: 3 | 1 | 2 | 4;
+    policy_tier: 1 | 2 | 3 | 4;
     limits_after: {
         daily_remaining_drops: string;
         hourly_tx_remaining: number;
@@ -2078,7 +2106,7 @@ declare const WalletSignOutputSchema: z.ZodDiscriminatedUnion<"status", [z.ZodOb
     status: "approved";
     signed_tx: string;
     tx_hash: string;
-    policy_tier: 3 | 1 | 2 | 4;
+    policy_tier: 1 | 2 | 3 | 4;
     limits_after: {
         daily_remaining_drops: string;
         hourly_tx_remaining: number;
@@ -2113,14 +2141,14 @@ declare const WalletSignOutputSchema: z.ZodDiscriminatedUnion<"status", [z.ZodOb
 }, "strip", z.ZodTypeAny, {
     status: "pending_approval";
     reason: "new_destination" | "exceeds_autonomous_limit" | "restricted_tx_type" | "outside_active_hours" | "requires_cosign";
-    policy_tier: 3 | 1 | 2 | 4;
+    policy_tier: 1 | 2 | 3 | 4;
     approval_id: string;
     expires_at: string;
     approval_url?: string | undefined;
 }, {
     status: "pending_approval";
     reason: "new_destination" | "exceeds_autonomous_limit" | "restricted_tx_type" | "outside_active_hours" | "requires_cosign";
-    policy_tier: 3 | 1 | 2 | 4;
+    policy_tier: 1 | 2 | 3 | 4;
     approval_id: string;
     expires_at: string;
     approval_url?: string | undefined;
@@ -2250,8 +2278,8 @@ declare const WalletBalanceOutputSchema: z.ZodObject<{
      */
     queried_at: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    network: "mainnet" | "testnet" | "devnet";
     policy_id: string;
+    network: "mainnet" | "testnet" | "devnet";
     address: string;
     balance_drops: string;
     balance_xrp: string;
@@ -2266,8 +2294,8 @@ declare const WalletBalanceOutputSchema: z.ZodObject<{
     ledger_index: number;
     queried_at: string;
 }, {
-    network: "mainnet" | "testnet" | "devnet";
     policy_id: string;
+    network: "mainnet" | "testnet" | "devnet";
     address: string;
     balance_drops: string;
     balance_xrp: string;
@@ -2414,7 +2442,7 @@ declare const WalletPolicyCheckOutputSchema: z.ZodObject<{
         daily_tx_limit: number;
     };
     would_approve: boolean;
-    tier: 3 | 1 | 2 | 4;
+    tier: 1 | 2 | 3 | 4;
     warnings: string[];
     violations: string[];
     transaction_details?: {
@@ -2432,7 +2460,7 @@ declare const WalletPolicyCheckOutputSchema: z.ZodObject<{
         daily_tx_limit: number;
     };
     would_approve: boolean;
-    tier: 3 | 1 | 2 | 4;
+    tier: 1 | 2 | 3 | 4;
     warnings: string[];
     violations: string[];
     transaction_details?: {
@@ -2520,7 +2548,7 @@ declare const TransactionHistoryEntrySchema: z.ZodObject<{
     success: z.ZodBoolean;
 }, "strip", z.ZodTypeAny, {
     type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
-    policy_tier: 3 | 1 | 2 | 4;
+    policy_tier: 1 | 2 | 3 | 4;
     ledger_index: number;
     hash: string;
     timestamp: string;
@@ -2530,7 +2558,7 @@ declare const TransactionHistoryEntrySchema: z.ZodObject<{
     amount_drops?: string | undefined;
 }, {
     type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
-    policy_tier: 3 | 1 | 2 | 4;
+    policy_tier: 1 | 2 | 3 | 4;
     ledger_index: number;
     hash: string;
     timestamp: string;
@@ -2589,7 +2617,7 @@ declare const WalletHistoryOutputSchema: z.ZodObject<{
         success: z.ZodBoolean;
     }, "strip", z.ZodTypeAny, {
         type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
-        policy_tier: 3 | 1 | 2 | 4;
+        policy_tier: 1 | 2 | 3 | 4;
         ledger_index: number;
         hash: string;
         timestamp: string;
@@ -2599,7 +2627,7 @@ declare const WalletHistoryOutputSchema: z.ZodObject<{
         amount_drops?: string | undefined;
     }, {
         type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
-        policy_tier: 3 | 1 | 2 | 4;
+        policy_tier: 1 | 2 | 3 | 4;
         ledger_index: number;
         hash: string;
         timestamp: string;
@@ -2620,7 +2648,7 @@ declare const WalletHistoryOutputSchema: z.ZodObject<{
     address: string;
     transactions: {
         type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
-        policy_tier: 3 | 1 | 2 | 4;
+        policy_tier: 1 | 2 | 3 | 4;
         ledger_index: number;
         hash: string;
         timestamp: string;
@@ -2635,7 +2663,7 @@ declare const WalletHistoryOutputSchema: z.ZodObject<{
     address: string;
     transactions: {
         type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
-        policy_tier: 3 | 1 | 2 | 4;
+        policy_tier: 1 | 2 | 3 | 4;
         ledger_index: number;
         hash: string;
         timestamp: string;
@@ -2676,15 +2704,15 @@ declare const WalletListEntrySchema: z.ZodObject<{
      */
     created_at: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    network: "mainnet" | "testnet" | "devnet";
     policy_id: string;
+    network: "mainnet" | "testnet" | "devnet";
     address: string;
     wallet_id: string;
     created_at: string;
     name?: string | undefined;
 }, {
-    network: "mainnet" | "testnet" | "devnet";
     policy_id: string;
+    network: "mainnet" | "testnet" | "devnet";
     address: string;
     wallet_id: string;
     created_at: string;
@@ -2723,15 +2751,15 @@ declare const WalletListOutputSchema: z.ZodObject<{
          */
         created_at: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        network: "mainnet" | "testnet" | "devnet";
         policy_id: string;
+        network: "mainnet" | "testnet" | "devnet";
         address: string;
         wallet_id: string;
         created_at: string;
         name?: string | undefined;
     }, {
-        network: "mainnet" | "testnet" | "devnet";
         policy_id: string;
+        network: "mainnet" | "testnet" | "devnet";
         address: string;
         wallet_id: string;
         created_at: string;
@@ -2743,8 +2771,8 @@ declare const WalletListOutputSchema: z.ZodObject<{
     total: z.ZodNumber;
 }, "strip", z.ZodTypeAny, {
     wallets: {
-        network: "mainnet" | "testnet" | "devnet";
         policy_id: string;
+        network: "mainnet" | "testnet" | "devnet";
         address: string;
         wallet_id: string;
         created_at: string;
@@ -2753,8 +2781,8 @@ declare const WalletListOutputSchema: z.ZodObject<{
     total: number;
 }, {
     wallets: {
-        network: "mainnet" | "testnet" | "devnet";
         policy_id: string;
+        network: "mainnet" | "testnet" | "devnet";
         address: string;
         wallet_id: string;
         created_at: string;
@@ -3272,16 +3300,16 @@ declare const NetworkConfigOutputSchema: z.ZodObject<{
         connection_timeout_ms: number;
     }>;
 }, "strip", z.ZodTypeAny, {
-    network: "mainnet" | "testnet" | "devnet";
     status: "configured";
+    network: "mainnet" | "testnet" | "devnet";
     config: {
         primary_url: string;
         fallback_urls: string[];
         connection_timeout_ms: number;
     };
 }, {
-    network: "mainnet" | "testnet" | "devnet";
     status: "configured";
+    network: "mainnet" | "testnet" | "devnet";
     config: {
         primary_url: string;
         fallback_urls: string[];
@@ -3403,7 +3431,7 @@ declare const AuditLogEntrySchema: z.ZodObject<{
     context?: string | undefined;
     wallet_id?: string | undefined;
     tx_hash?: string | undefined;
-    tier?: 3 | 1 | 2 | 4 | undefined;
+    tier?: 1 | 2 | 3 | 4 | undefined;
     destination?: string | undefined;
     transaction_type?: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge" | undefined;
     amount_xrp?: string | undefined;
@@ -3418,7 +3446,7 @@ declare const AuditLogEntrySchema: z.ZodObject<{
     context?: string | undefined;
     wallet_id?: string | undefined;
     tx_hash?: string | undefined;
-    tier?: 3 | 1 | 2 | 4 | undefined;
+    tier?: 1 | 2 | 3 | 4 | undefined;
     destination?: string | undefined;
     transaction_type?: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge" | undefined;
     amount_xrp?: string | undefined;
@@ -3451,6 +3479,7 @@ type NotificationEvent = z.infer<typeof NotificationEventSchema>;
 type PolicyNotifications = z.infer<typeof PolicyNotificationsSchema>;
 type AgentWalletPolicy = z.infer<typeof AgentWalletPolicySchema>;
 type WalletCreateInput = z.infer<typeof WalletCreateInputSchema>;
+type WalletImportInput = z.infer<typeof WalletImportInputSchema>;
 type WalletSignInput = z.infer<typeof WalletSignInputSchema>;
 type WalletBalanceInput = z.infer<typeof WalletBalanceInputSchema>;
 type WalletPolicyCheckInput = z.infer<typeof WalletPolicyCheckInputSchema>;
@@ -3580,13 +3609,13 @@ declare const InputSchemas: {
                 allow_new_destinations: boolean;
                 allowlist?: string[] | undefined;
                 blocklist?: string[] | undefined;
-                new_destination_tier?: 3 | 2 | undefined;
+                new_destination_tier?: 2 | 3 | undefined;
             }, {
                 mode: "allowlist" | "blocklist" | "open";
                 allow_new_destinations: boolean;
                 allowlist?: string[] | undefined;
                 blocklist?: string[] | undefined;
-                new_destination_tier?: 3 | 2 | undefined;
+                new_destination_tier?: 2 | 3 | undefined;
             }>;
             /**
              * Transaction type restrictions
@@ -3685,12 +3714,12 @@ declare const InputSchemas: {
                 delay_seconds: z.ZodOptional<z.ZodNumber>;
             }, "strip", z.ZodTypeAny, {
                 amount_threshold_drops: string;
-                new_destination: 3 | 2;
+                new_destination: 2 | 3;
                 account_settings: 3;
                 delay_seconds?: number | undefined;
             }, {
                 amount_threshold_drops: string;
-                new_destination: 3 | 2;
+                new_destination: 2 | 3;
                 account_settings: 3;
                 delay_seconds?: number | undefined;
             }>;
@@ -3728,7 +3757,7 @@ declare const InputSchemas: {
                 allow_new_destinations: boolean;
                 allowlist?: string[] | undefined;
                 blocklist?: string[] | undefined;
-                new_destination_tier?: 3 | 2 | undefined;
+                new_destination_tier?: 2 | 3 | undefined;
             };
             transaction_types: {
                 allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -3737,7 +3766,7 @@ declare const InputSchemas: {
             };
             escalation: {
                 amount_threshold_drops: string;
-                new_destination: 3 | 2;
+                new_destination: 2 | 3;
                 account_settings: 3;
                 delay_seconds?: number | undefined;
             };
@@ -3767,7 +3796,7 @@ declare const InputSchemas: {
                 allow_new_destinations: boolean;
                 allowlist?: string[] | undefined;
                 blocklist?: string[] | undefined;
-                new_destination_tier?: 3 | 2 | undefined;
+                new_destination_tier?: 2 | 3 | undefined;
             };
             transaction_types: {
                 allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -3776,7 +3805,7 @@ declare const InputSchemas: {
             };
             escalation: {
                 amount_threshold_drops: string;
-                new_destination: 3 | 2;
+                new_destination: 2 | 3;
                 account_settings: 3;
                 delay_seconds?: number | undefined;
             };
@@ -3823,7 +3852,7 @@ declare const InputSchemas: {
                 allow_new_destinations: boolean;
                 allowlist?: string[] | undefined;
                 blocklist?: string[] | undefined;
-                new_destination_tier?: 3 | 2 | undefined;
+                new_destination_tier?: 2 | 3 | undefined;
             };
             transaction_types: {
                 allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -3832,7 +3861,7 @@ declare const InputSchemas: {
             };
             escalation: {
                 amount_threshold_drops: string;
-                new_destination: 3 | 2;
+                new_destination: 2 | 3;
                 account_settings: 3;
                 delay_seconds?: number | undefined;
             };
@@ -3868,7 +3897,7 @@ declare const InputSchemas: {
                 allow_new_destinations: boolean;
                 allowlist?: string[] | undefined;
                 blocklist?: string[] | undefined;
-                new_destination_tier?: 3 | 2 | undefined;
+                new_destination_tier?: 2 | 3 | undefined;
             };
             transaction_types: {
                 allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -3877,7 +3906,7 @@ declare const InputSchemas: {
             };
             escalation: {
                 amount_threshold_drops: string;
-                new_destination: 3 | 2;
+                new_destination: 2 | 3;
                 account_settings: 3;
                 delay_seconds?: number | undefined;
             };
@@ -3897,6 +3926,28 @@ declare const InputSchemas: {
         wallet_name?: string | undefined;
         funding_source?: string | undefined;
         initial_funding_drops?: string | undefined;
+    }>;
+    readonly wallet_import: z.ZodObject<{
+        /**
+         * XRPL seed (starts with 's')
+         */
+        seed: z.ZodString;
+        /**
+         * Target network for the wallet
+         */
+        network: z.ZodEnum<["mainnet", "testnet", "devnet"]>;
+        /**
+         * Human-readable wallet name (optional)
+         */
+        wallet_name: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        network: "mainnet" | "testnet" | "devnet";
+        seed: string;
+        wallet_name?: string | undefined;
+    }, {
+        network: "mainnet" | "testnet" | "devnet";
+        seed: string;
+        wallet_name?: string | undefined;
     }>;
     readonly wallet_sign: z.ZodObject<{
         /**
@@ -4132,13 +4183,13 @@ declare const InputSchemas: {
                 allow_new_destinations: boolean;
                 allowlist?: string[] | undefined;
                 blocklist?: string[] | undefined;
-                new_destination_tier?: 3 | 2 | undefined;
+                new_destination_tier?: 2 | 3 | undefined;
             }, {
                 mode: "allowlist" | "blocklist" | "open";
                 allow_new_destinations: boolean;
                 allowlist?: string[] | undefined;
                 blocklist?: string[] | undefined;
-                new_destination_tier?: 3 | 2 | undefined;
+                new_destination_tier?: 2 | 3 | undefined;
             }>;
             /**
              * Transaction type restrictions
@@ -4237,12 +4288,12 @@ declare const InputSchemas: {
                 delay_seconds: z.ZodOptional<z.ZodNumber>;
             }, "strip", z.ZodTypeAny, {
                 amount_threshold_drops: string;
-                new_destination: 3 | 2;
+                new_destination: 2 | 3;
                 account_settings: 3;
                 delay_seconds?: number | undefined;
             }, {
                 amount_threshold_drops: string;
-                new_destination: 3 | 2;
+                new_destination: 2 | 3;
                 account_settings: 3;
                 delay_seconds?: number | undefined;
             }>;
@@ -4280,7 +4331,7 @@ declare const InputSchemas: {
                 allow_new_destinations: boolean;
                 allowlist?: string[] | undefined;
                 blocklist?: string[] | undefined;
-                new_destination_tier?: 3 | 2 | undefined;
+                new_destination_tier?: 2 | 3 | undefined;
             };
             transaction_types: {
                 allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -4289,7 +4340,7 @@ declare const InputSchemas: {
             };
             escalation: {
                 amount_threshold_drops: string;
-                new_destination: 3 | 2;
+                new_destination: 2 | 3;
                 account_settings: 3;
                 delay_seconds?: number | undefined;
             };
@@ -4319,7 +4370,7 @@ declare const InputSchemas: {
                 allow_new_destinations: boolean;
                 allowlist?: string[] | undefined;
                 blocklist?: string[] | undefined;
-                new_destination_tier?: 3 | 2 | undefined;
+                new_destination_tier?: 2 | 3 | undefined;
             };
             transaction_types: {
                 allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -4328,7 +4379,7 @@ declare const InputSchemas: {
             };
             escalation: {
                 amount_threshold_drops: string;
-                new_destination: 3 | 2;
+                new_destination: 2 | 3;
                 account_settings: 3;
                 delay_seconds?: number | undefined;
             };
@@ -4364,7 +4415,7 @@ declare const InputSchemas: {
                 allow_new_destinations: boolean;
                 allowlist?: string[] | undefined;
                 blocklist?: string[] | undefined;
-                new_destination_tier?: 3 | 2 | undefined;
+                new_destination_tier?: 2 | 3 | undefined;
             };
             transaction_types: {
                 allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -4373,7 +4424,7 @@ declare const InputSchemas: {
             };
             escalation: {
                 amount_threshold_drops: string;
-                new_destination: 3 | 2;
+                new_destination: 2 | 3;
                 account_settings: 3;
                 delay_seconds?: number | undefined;
             };
@@ -4407,7 +4458,7 @@ declare const InputSchemas: {
                 allow_new_destinations: boolean;
                 allowlist?: string[] | undefined;
                 blocklist?: string[] | undefined;
-                new_destination_tier?: 3 | 2 | undefined;
+                new_destination_tier?: 2 | 3 | undefined;
             };
             transaction_types: {
                 allowed: ("AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge")[];
@@ -4416,7 +4467,7 @@ declare const InputSchemas: {
             };
             escalation: {
                 amount_threshold_drops: string;
-                new_destination: 3 | 2;
+                new_destination: 2 | 3;
                 account_settings: 3;
                 delay_seconds?: number | undefined;
             };
@@ -4533,16 +4584,16 @@ declare const OutputSchemas: {
          */
         created_at: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        network: "mainnet" | "testnet" | "devnet";
         policy_id: string;
+        network: "mainnet" | "testnet" | "devnet";
         address: string;
         regular_key_public: string;
         master_key_backup: string;
         wallet_id: string;
         created_at: string;
     }, {
-        network: "mainnet" | "testnet" | "devnet";
         policy_id: string;
+        network: "mainnet" | "testnet" | "devnet";
         address: string;
         regular_key_public: string;
         master_key_backup: string;
@@ -4599,7 +4650,7 @@ declare const OutputSchemas: {
         status: "approved";
         signed_tx: string;
         tx_hash: string;
-        policy_tier: 3 | 1 | 2 | 4;
+        policy_tier: 1 | 2 | 3 | 4;
         limits_after: {
             daily_remaining_drops: string;
             hourly_tx_remaining: number;
@@ -4610,7 +4661,7 @@ declare const OutputSchemas: {
         status: "approved";
         signed_tx: string;
         tx_hash: string;
-        policy_tier: 3 | 1 | 2 | 4;
+        policy_tier: 1 | 2 | 3 | 4;
         limits_after: {
             daily_remaining_drops: string;
             hourly_tx_remaining: number;
@@ -4645,14 +4696,14 @@ declare const OutputSchemas: {
     }, "strip", z.ZodTypeAny, {
         status: "pending_approval";
         reason: "new_destination" | "exceeds_autonomous_limit" | "restricted_tx_type" | "outside_active_hours" | "requires_cosign";
-        policy_tier: 3 | 1 | 2 | 4;
+        policy_tier: 1 | 2 | 3 | 4;
         approval_id: string;
         expires_at: string;
         approval_url?: string | undefined;
     }, {
         status: "pending_approval";
         reason: "new_destination" | "exceeds_autonomous_limit" | "restricted_tx_type" | "outside_active_hours" | "requires_cosign";
-        policy_tier: 3 | 1 | 2 | 4;
+        policy_tier: 1 | 2 | 3 | 4;
         approval_id: string;
         expires_at: string;
         approval_url?: string | undefined;
@@ -4779,8 +4830,8 @@ declare const OutputSchemas: {
          */
         queried_at: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        network: "mainnet" | "testnet" | "devnet";
         policy_id: string;
+        network: "mainnet" | "testnet" | "devnet";
         address: string;
         balance_drops: string;
         balance_xrp: string;
@@ -4795,8 +4846,8 @@ declare const OutputSchemas: {
         ledger_index: number;
         queried_at: string;
     }, {
-        network: "mainnet" | "testnet" | "devnet";
         policy_id: string;
+        network: "mainnet" | "testnet" | "devnet";
         address: string;
         balance_drops: string;
         balance_xrp: string;
@@ -4897,7 +4948,7 @@ declare const OutputSchemas: {
             daily_tx_limit: number;
         };
         would_approve: boolean;
-        tier: 3 | 1 | 2 | 4;
+        tier: 1 | 2 | 3 | 4;
         warnings: string[];
         violations: string[];
         transaction_details?: {
@@ -4915,7 +4966,7 @@ declare const OutputSchemas: {
             daily_tx_limit: number;
         };
         would_approve: boolean;
-        tier: 3 | 1 | 2 | 4;
+        tier: 1 | 2 | 3 | 4;
         warnings: string[];
         violations: string[];
         transaction_details?: {
@@ -5005,7 +5056,7 @@ declare const OutputSchemas: {
             success: z.ZodBoolean;
         }, "strip", z.ZodTypeAny, {
             type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
-            policy_tier: 3 | 1 | 2 | 4;
+            policy_tier: 1 | 2 | 3 | 4;
             ledger_index: number;
             hash: string;
             timestamp: string;
@@ -5015,7 +5066,7 @@ declare const OutputSchemas: {
             amount_drops?: string | undefined;
         }, {
             type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
-            policy_tier: 3 | 1 | 2 | 4;
+            policy_tier: 1 | 2 | 3 | 4;
             ledger_index: number;
             hash: string;
             timestamp: string;
@@ -5036,7 +5087,7 @@ declare const OutputSchemas: {
         address: string;
         transactions: {
             type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
-            policy_tier: 3 | 1 | 2 | 4;
+            policy_tier: 1 | 2 | 3 | 4;
             ledger_index: number;
             hash: string;
             timestamp: string;
@@ -5051,7 +5102,7 @@ declare const OutputSchemas: {
         address: string;
         transactions: {
             type: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge";
-            policy_tier: 3 | 1 | 2 | 4;
+            policy_tier: 1 | 2 | 3 | 4;
             ledger_index: number;
             hash: string;
             timestamp: string;
@@ -5093,15 +5144,15 @@ declare const OutputSchemas: {
              */
             created_at: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            network: "mainnet" | "testnet" | "devnet";
             policy_id: string;
+            network: "mainnet" | "testnet" | "devnet";
             address: string;
             wallet_id: string;
             created_at: string;
             name?: string | undefined;
         }, {
-            network: "mainnet" | "testnet" | "devnet";
             policy_id: string;
+            network: "mainnet" | "testnet" | "devnet";
             address: string;
             wallet_id: string;
             created_at: string;
@@ -5113,8 +5164,8 @@ declare const OutputSchemas: {
         total: z.ZodNumber;
     }, "strip", z.ZodTypeAny, {
         wallets: {
-            network: "mainnet" | "testnet" | "devnet";
             policy_id: string;
+            network: "mainnet" | "testnet" | "devnet";
             address: string;
             wallet_id: string;
             created_at: string;
@@ -5123,8 +5174,8 @@ declare const OutputSchemas: {
         total: number;
     }, {
         wallets: {
-            network: "mainnet" | "testnet" | "devnet";
             policy_id: string;
+            network: "mainnet" | "testnet" | "devnet";
             address: string;
             wallet_id: string;
             created_at: string;
@@ -5500,16 +5551,16 @@ declare const OutputSchemas: {
             connection_timeout_ms: number;
         }>;
     }, "strip", z.ZodTypeAny, {
-        network: "mainnet" | "testnet" | "devnet";
         status: "configured";
+        network: "mainnet" | "testnet" | "devnet";
         config: {
             primary_url: string;
             fallback_urls: string[];
             connection_timeout_ms: number;
         };
     }, {
-        network: "mainnet" | "testnet" | "devnet";
         status: "configured";
+        network: "mainnet" | "testnet" | "devnet";
         config: {
             primary_url: string;
             fallback_urls: string[];
@@ -5556,4 +5607,4 @@ declare const OutputSchemas: {
  */
 type ToolName = keyof typeof InputSchemas;
 
-export { type AgentWalletPolicy, AgentWalletPolicySchema, type ApprovalTier, ApprovalTierSchema, type AuditEventType, AuditEventTypeSchema, type AuditLogEntry, AuditLogEntrySchema, type DecodedTransaction, DecodedTransactionSchema, type DestinationMode, DestinationModeSchema, type DropsAmount, DropsAmountOptionalZeroSchema, DropsAmountSchema, type ErrorCode, ErrorCodeSchema, type ErrorResponse, ErrorResponseSchema, type EscrowReference, EscrowReferenceSchema, type HexString, type HexStringRaw, HexStringRawSchema, HexStringSchema, InputSchemas, type LedgerIndex, LedgerIndexSchema, type LimitStatus, LimitStatusSchema, type Network, type NetworkConfigInput, NetworkConfigInputSchema, type NetworkConfigOutput, NetworkConfigOutputSchema, NetworkSchema, type NotificationEvent, NotificationEventSchema, OutputSchemas, type PaginationMarker, PaginationMarkerSchema, type PolicyDestinations, PolicyDestinationsSchema, type PolicyEscalation, PolicyEscalationSchema, type PolicyLimits, PolicyLimitsSchema, type PolicyNotifications, PolicyNotificationsSchema, type PolicySetInput, PolicySetInputSchema, type PolicySetOutput, PolicySetOutputSchema, type PolicyTimeControls, PolicyTimeControlsSchema, type PolicyTransactionTypes, PolicyTransactionTypesSchema, type PolicyViolation, PolicyViolationSchema, type PublicKey, PublicKeySchema, type RemainingLimits, RemainingLimitsSchema, type SequenceNumber, SequenceNumberSchema, type SignedTransactionBlob, SignedTransactionBlobSchema, type SignerEntry, SignerEntrySchema, type Timestamp, TimestampSchema, type ToolName, type TransactionHash, TransactionHashSchema, type TransactionHistoryEntry, TransactionHistoryEntrySchema, type TransactionResult, TransactionResultSchema, type TransactionType, TransactionTypeSchema, type TxDecodeInput, TxDecodeInputSchema, type TxDecodeOutput, TxDecodeOutputSchema, type TxSubmitInput, TxSubmitInputSchema, type TxSubmitOutput, TxSubmitOutputSchema, type UnsignedTransactionBlob, UnsignedTransactionBlobSchema, type WalletBalanceInput, WalletBalanceInputSchema, type WalletBalanceOutput, WalletBalanceOutputSchema, type WalletCreateInput, WalletCreateInputSchema, type WalletCreateOutput, WalletCreateOutputSchema, type WalletFundInput, WalletFundInputSchema, type WalletFundOutput, WalletFundOutputSchema, type WalletHistoryInput, WalletHistoryInputSchema, type WalletHistoryOutput, WalletHistoryOutputSchema, type WalletId, WalletIdSchema, type WalletListEntry, WalletListEntrySchema, type WalletListInput, WalletListInputSchema, type WalletListOutput, WalletListOutputSchema, type WalletName, WalletNameSchema, type WalletPolicyCheckInput, WalletPolicyCheckInputSchema, type WalletPolicyCheckOutput, WalletPolicyCheckOutputSchema, type WalletRotateInput, WalletRotateInputSchema, type WalletRotateOutput, WalletRotateOutputSchema, type WalletSignApprovedOutput, WalletSignApprovedOutputSchema, type WalletSignInput, WalletSignInputSchema, type WalletSignOutput, WalletSignOutputSchema, type WalletSignPendingOutput, WalletSignPendingOutputSchema, type WalletSignRejectedOutput, WalletSignRejectedOutputSchema, type XRPLAddress, XRPLAddressSchema };
+export { type AgentWalletPolicy, AgentWalletPolicySchema, type ApprovalTier, ApprovalTierSchema, type AuditEventType, AuditEventTypeSchema, type AuditLogEntry, AuditLogEntrySchema, type DecodedTransaction, DecodedTransactionSchema, type DestinationMode, DestinationModeSchema, type DropsAmount, DropsAmountOptionalZeroSchema, DropsAmountSchema, type ErrorCode, ErrorCodeSchema, type ErrorResponse, ErrorResponseSchema, type EscrowReference, EscrowReferenceSchema, type HexString, type HexStringRaw, HexStringRawSchema, HexStringSchema, InputSchemas, type LedgerIndex, LedgerIndexSchema, type LimitStatus, LimitStatusSchema, type Network, type NetworkConfigInput, NetworkConfigInputSchema, type NetworkConfigOutput, NetworkConfigOutputSchema, NetworkSchema, type NotificationEvent, NotificationEventSchema, OutputSchemas, type PaginationMarker, PaginationMarkerSchema, type PolicyDestinations, PolicyDestinationsSchema, type PolicyEscalation, PolicyEscalationSchema, type PolicyLimits, PolicyLimitsSchema, type PolicyNotifications, PolicyNotificationsSchema, type PolicySetInput, PolicySetInputSchema, type PolicySetOutput, PolicySetOutputSchema, type PolicyTimeControls, PolicyTimeControlsSchema, type PolicyTransactionTypes, PolicyTransactionTypesSchema, type PolicyViolation, PolicyViolationSchema, type PublicKey, PublicKeySchema, type RemainingLimits, RemainingLimitsSchema, type SequenceNumber, SequenceNumberSchema, type SignedTransactionBlob, SignedTransactionBlobSchema, type SignerEntry, SignerEntrySchema, type Timestamp, TimestampSchema, type ToolName, type TransactionHash, TransactionHashSchema, type TransactionHistoryEntry, TransactionHistoryEntrySchema, type TransactionResult, TransactionResultSchema, type TransactionType, TransactionTypeSchema, type TxDecodeInput, TxDecodeInputSchema, type TxDecodeOutput, TxDecodeOutputSchema, type TxSubmitInput, TxSubmitInputSchema, type TxSubmitOutput, TxSubmitOutputSchema, type UnsignedTransactionBlob, UnsignedTransactionBlobSchema, type WalletBalanceInput, WalletBalanceInputSchema, type WalletBalanceOutput, WalletBalanceOutputSchema, type WalletCreateInput, WalletCreateInputSchema, type WalletCreateOutput, WalletCreateOutputSchema, type WalletFundInput, WalletFundInputSchema, type WalletFundOutput, WalletFundOutputSchema, type WalletHistoryInput, WalletHistoryInputSchema, type WalletHistoryOutput, WalletHistoryOutputSchema, type WalletId, WalletIdSchema, type WalletImportInput, WalletImportInputSchema, type WalletListEntry, WalletListEntrySchema, type WalletListInput, WalletListInputSchema, type WalletListOutput, WalletListOutputSchema, type WalletName, WalletNameSchema, type WalletPolicyCheckInput, WalletPolicyCheckInputSchema, type WalletPolicyCheckOutput, WalletPolicyCheckOutputSchema, type WalletRotateInput, WalletRotateInputSchema, type WalletRotateOutput, WalletRotateOutputSchema, type WalletSignApprovedOutput, WalletSignApprovedOutputSchema, type WalletSignInput, WalletSignInputSchema, type WalletSignOutput, WalletSignOutputSchema, type WalletSignPendingOutput, WalletSignPendingOutputSchema, type WalletSignRejectedOutput, WalletSignRejectedOutputSchema, type XRPLAddress, XRPLAddressSchema };
