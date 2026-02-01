@@ -2784,6 +2784,11 @@ declare class XRPLClientWrapper {
      */
     disconnect(): Promise<void>;
     /**
+     * Ensure the client is connected before making requests.
+     * Auto-connects if not already connected.
+     */
+    private ensureConnected;
+    /**
      * Reconnect with exponential backoff (iterative, not recursive)
      *
      * @throws {MaxReconnectAttemptsError} If max attempts exceeded

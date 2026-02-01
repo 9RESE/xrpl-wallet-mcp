@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **XRPL Client Auto-Connect**: Fixed `wallet_balance` and other tools failing because XRPL client was never connected
+  - Added `ensureConnected()` helper that auto-connects before each request
+  - All client methods now auto-connect if needed
+
 - **ESM/CJS Compatibility**: Fixed `Named export 'ECDSA' not found` error when importing from xrpl package
   - Changed all xrpl imports from named imports to namespace imports (`import * as xrpl from 'xrpl'`)
   - Added separate type imports for TypeScript type annotations
