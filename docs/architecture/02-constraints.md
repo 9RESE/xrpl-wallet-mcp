@@ -324,8 +324,8 @@ XRPL protocol constraints are imposed by the XRP Ledger consensus rules and cann
 
 | ID | Constraint | Details | Impact |
 |----|------------|---------|--------|
-| **XC-01** | 10 XRP base reserve | Minimum balance to activate an account on XRPL mainnet | New wallets require 10 XRP funding before use |
-| **XC-02** | 2 XRP owner reserve per object | Additional reserve for owned objects (trustlines, offers, signer lists) | Multi-sig setup increases reserve by 2 XRP minimum |
+| **XC-01** | 1 XRP base reserve | Minimum balance to activate an account on XRPL mainnet (updated Dec 2024) | New wallets require 1 XRP funding before use |
+| **XC-02** | 0.2 XRP owner reserve per object | Additional reserve for owned objects (trustlines, offers, signer lists, escrows) | Multi-sig setup increases reserve by 0.2 XRP |
 | **XC-03** | Monotonic sequence numbers | Each account has a sequence number that must increment by 1 for each transaction | Must track sequence numbers; cannot reuse or skip |
 | **XC-04** | 10 drops minimum transaction fee | Base transaction cost (1 XRP = 1,000,000 drops) | Fee must be >= 10 drops; open ledger cost may be higher |
 | **XC-05** | Maximum 32 signers in signer list | Multi-signature quorum limited to 32 participants | Enterprise multi-sig designs limited by this |
@@ -335,16 +335,17 @@ XRPL protocol constraints are imposed by the XRP Ledger consensus rules and cann
 ```
 Account Reserve = Base Reserve + (Owner Count × Owner Reserve)
 
-Where:
-- Base Reserve = 10 XRP (XC-01)
-- Owner Reserve = 2 XRP (XC-02)
+Where (as of December 2024):
+- Base Reserve = 1 XRP (XC-01)
+- Owner Reserve = 0.2 XRP (XC-02)
 - Owner Count = number of owned ledger objects
 
 Example:
-- Basic account: 10 XRP
-- Account with 1 trustline: 10 + (1 × 2) = 12 XRP
-- Account with signer list (3 signers): 10 + (1 × 2) = 12 XRP
-- Account with trustline + signer list: 10 + (2 × 2) = 14 XRP
+- Basic account: 1 XRP
+- Account with 1 escrow: 1 + (1 × 0.2) = 1.2 XRP
+- Account with 5 escrows: 1 + (5 × 0.2) = 2 XRP
+- Account with signer list: 1 + (1 × 0.2) = 1.2 XRP
+- Account with escrow + signer list: 1 + (2 × 0.2) = 1.4 XRP
 ```
 
 ### 7.2 Sequence Number Management

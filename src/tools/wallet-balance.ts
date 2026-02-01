@@ -59,8 +59,9 @@ export async function handleWalletBalance(
   const currentLedgerIndex = await xrplClient.getCurrentLedgerIndex();
 
   // Query server info for current reserve requirements
-  let baseReserve = BigInt('10000000'); // 10 XRP default
-  let ownerReserve = BigInt('2000000'); // 2 XRP per object default
+  // Defaults updated Dec 2024: 1 XRP base, 0.2 XRP per object
+  let baseReserve = BigInt('1000000'); // 1 XRP default
+  let ownerReserve = BigInt('200000'); // 0.2 XRP per object default
 
   try {
     const serverInfo = await xrplClient.getServerInfo();

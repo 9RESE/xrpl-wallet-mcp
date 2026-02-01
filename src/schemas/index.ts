@@ -23,9 +23,9 @@ import { z } from 'zod';
 const MAX_DROPS = BigInt('100000000000000000'); // 100 quadrillion
 
 /**
- * Minimum reserve requirement in drops (currently 10 XRP)
+ * Minimum reserve requirement in drops (currently 1 XRP as of Dec 2024)
  */
-const MIN_RESERVE_DROPS = BigInt('10000000'); // 10 XRP
+const MIN_RESERVE_DROPS = BigInt('1000000'); // 1 XRP
 
 /**
  * XRPL Transaction Types as defined in the protocol
@@ -44,6 +44,10 @@ const XRPL_TRANSACTION_TYPES = [
   'CheckCash',
   'CheckCreate',
   'Clawback',
+  'CredentialAccept',
+  'CredentialCreate',
+  'CredentialDelete',
+  'DelegateSet',
   'DepositPreauth',
   'DIDDelete',
   'DIDSet',
@@ -51,6 +55,10 @@ const XRPL_TRANSACTION_TYPES = [
   'EscrowCancel',
   'EscrowCreate',
   'EscrowFinish',
+  'MPTokenAuthorize',
+  'MPTokenIssuanceCreate',
+  'MPTokenIssuanceDestroy',
+  'MPTokenIssuanceSet',
   'NFTokenAcceptOffer',
   'NFTokenBurn',
   'NFTokenCancelOffer',
@@ -58,10 +66,14 @@ const XRPL_TRANSACTION_TYPES = [
   'NFTokenMint',
   'OfferCancel',
   'OfferCreate',
+  'OracleDelete',
+  'OracleSet',
   'Payment',
   'PaymentChannelClaim',
   'PaymentChannelCreate',
   'PaymentChannelFund',
+  'PermissionedDomainDelete',
+  'PermissionedDomainSet',
   'SetFee',
   'SetRegularKey',
   'SignerListSet',
@@ -72,6 +84,9 @@ const XRPL_TRANSACTION_TYPES = [
   'XChainAddClaimAttestation',
   'XChainClaim',
   'XChainCommit',
+  'XChainCreateBridge',
+  'XChainCreateClaimID',
+  'XChainModifyBridge',
   'XChainCreateBridge',
   'XChainCreateClaimID',
   'XChainModifyBridge',

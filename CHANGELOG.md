@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.2] - 2026-01-31
 
+### Changed
+
+- **Reserve Values**: Updated default reserves to Dec 2024 values (1 XRP base, 0.2 XRP per object)
+- **Transaction Types**: Added 15 new XRPL transaction types:
+  - Oracle: `OracleSet`, `OracleDelete`
+  - MPT: `MPTokenAuthorize`, `MPTokenIssuanceCreate`, `MPTokenIssuanceDestroy`, `MPTokenIssuanceSet`
+  - Credentials: `CredentialAccept`, `CredentialCreate`, `CredentialDelete`
+  - Permissioned: `PermissionedDomainSet`, `PermissionedDomainDelete`
+  - Other: `DelegateSet`, `XChainCreateBridge`, `XChainCreateClaimID`, `XChainModifyBridge`
+
 ### Added
 
 - **CLI Bootstrap** (`src/cli.ts`): Entry point that initializes all services from environment variables and runs the MCP server
@@ -37,9 +47,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 
 - Added [wallet_import API documentation](./docs/api/tools/wallet-import.md)
+- Added [Network Costs Reference](./docs/user/reference/network-costs.md) with current reserves
 - Updated README.md: tool count 11→12, added wallet_import to tools table
 - Updated CLAUDE.md: added wallet_import to MCP Tools Reference
 - Updated getting-started tutorial: added wallet_import as simpler alternative
+- Updated architecture constraints with Dec 2024 reserve values
 
 ## [0.1.1] - 2026-01-28
 

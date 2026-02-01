@@ -231,9 +231,9 @@ Policy Status:
 ```
 
 The balance shows:
-- **Total balance**: 1,000 XRP from the testnet faucet
-- **Reserved**: 10 XRP locked as the account reserve
-- **Available**: What you can actually spend (990 XRP)
+- **Total balance**: ~100 XRP from the testnet faucet
+- **Reserved**: 1 XRP locked as the base account reserve (updated Dec 2024)
+- **Available**: What you can actually spend (~99 XRP)
 
 ---
 
