@@ -9,7 +9,7 @@ import * as fs from 'fs/promises';
 import * as path2 from 'path';
 import { promises } from 'fs';
 import * as argon2 from 'argon2';
-import { ECDSA, Wallet, Client, decode, encode, multisign, hashes, dropsToXrp as dropsToXrp$1 } from 'xrpl';
+import * as xrpl from 'xrpl';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
@@ -9082,8 +9082,8 @@ var LocalKeystore = class {
     }
     const walletId = this.generateWalletId();
     const algorithm = options?.algorithm || "ed25519";
-    const xrplAlgorithm = algorithm === "secp256k1" ? ECDSA.secp256k1 : ECDSA.ed25519;
-    const xrplWallet = Wallet.generate(xrplAlgorithm);
+    const xrplAlgorithm = algorithm === "secp256k1" ? xrpl.ECDSA.secp256k1 : xrpl.ECDSA.ed25519;
+    const xrplWallet = xrpl.Wallet.generate(xrplAlgorithm);
     const seedString = xrplWallet.seed;
     if (!seedString) {
       throw new KeystoreWriteError("Failed to generate wallet seed", "create");
@@ -9189,13 +9189,13 @@ var LocalKeystore = class {
     let xrplWallet;
     try {
       if (keyBuffer.length === 16) {
-        xrplWallet = Wallet.fromEntropy(keyBuffer);
+        xrplWallet = xrpl.Wallet.fromEntropy(keyBuffer);
       } else if (keyBuffer.length >= 29 && keyBuffer.length <= 35) {
         const seedString = keyBuffer.toString("utf-8");
-        xrplWallet = Wallet.fromSeed(seedString);
+        xrplWallet = xrpl.Wallet.fromSeed(seedString);
       } else {
         try {
-          xrplWallet = Wallet.fromEntropy(keyBuffer.slice(0, 16));
+          xrplWallet = xrpl.Wallet.fromEntropy(keyBuffer.slice(0, 16));
         } catch {
           throw new InvalidKeyError("Could not derive wallet from key");
         }
@@ -10018,7 +10018,7 @@ var XRPLClientWrapper = class {
       ...getConnectionConfig(),
       ...config.connectionConfig
     };
-    this.client = new Client(this.nodeUrl);
+    this.client = new xrpl.Client(this.nodeUrl);
   }
   /**
    * Get the current network
@@ -10078,7 +10078,7 @@ var XRPLClientWrapper = class {
             await this.client.disconnect();
           } catch {
           }
-          this.client = new Client(url);
+          this.client = new xrpl.Client(url);
         }
         await this.client.connect();
         this.isConnected = true;
@@ -10463,7 +10463,7 @@ var SigningService = class {
       let transaction;
       if (typeof unsignedTx === "string") {
         try {
-          transaction = decode(unsignedTx);
+          transaction = xrpl.decode(unsignedTx);
         } catch (error) {
           throw new SigningError(
             "TRANSACTION_DECODE_ERROR",
@@ -10505,7 +10505,7 @@ var SigningService = class {
       let wallet;
       try {
         const seedString = secureKey.getBuffer().toString("utf-8");
-        wallet = Wallet.fromSeed(seedString);
+        wallet = xrpl.Wallet.fromSeed(seedString);
         if (!usingRegularKey && wallet.address !== walletEntry.address) {
           throw new Error("Wallet address mismatch - keystore corruption detected");
         }
@@ -10582,7 +10582,7 @@ var SigningService = class {
    */
   decodeTransaction(txBlob) {
     try {
-      return decode(txBlob);
+      return xrpl.decode(txBlob);
     } catch (error) {
       throw new SigningError(
         "TRANSACTION_DECODE_ERROR",
@@ -10600,7 +10600,7 @@ var SigningService = class {
    */
   encodeTransaction(transaction) {
     try {
-      return encode(transaction);
+      return xrpl.encode(transaction);
     } catch (error) {
       throw new SigningError(
         "TRANSACTION_ENCODE_ERROR",
@@ -10730,7 +10730,7 @@ var MultiSignOrchestrator = class {
     let decodedTx;
     try {
       const { decode: decode7 } = await import('xrpl');
-      decodedTx = decode7(unsignedTx);
+      decodedTx = xrpl.decode(unsignedTx);
     } catch (error) {
       throw new MultiSignError(
         "INVALID_TRANSACTION",
@@ -10909,7 +10909,7 @@ var MultiSignOrchestrator = class {
     if (signatures.length === 0) {
       throw new MultiSignError("NO_SIGNATURES", "No signatures collected");
     }
-    const multiSignedTx = multisign(signatures);
+    const multiSignedTx = xrpl.multisign(signatures);
     let txHash;
     try {
       const response = await this.xrplClient.submitAndWait(multiSignedTx, {
@@ -11066,7 +11066,7 @@ var MultiSignOrchestrator = class {
     try {
       let signedTx;
       try {
-        signedTx = decode(signatureBlob);
+        signedTx = xrpl.decode(signatureBlob);
       } catch (error) {
         return { valid: false, reason: "Invalid transaction blob format" };
       }
@@ -11076,7 +11076,7 @@ var MultiSignOrchestrator = class {
         }
         if (signedTx.SigningPubKey) {
           try {
-            const signerWallet = new Wallet(signedTx.SigningPubKey, "0".repeat(64));
+            const signerWallet = new xrpl.Wallet(signedTx.SigningPubKey, "0".repeat(64));
             if (signerWallet.classicAddress !== expectedSigner) {
               return {
                 valid: false,
@@ -11102,7 +11102,7 @@ var MultiSignOrchestrator = class {
         return { valid: false, reason: "Incomplete signer entry" };
       }
       try {
-        const signerWallet = new Wallet(signerEntry.Signer.SigningPubKey, "0".repeat(64));
+        const signerWallet = new xrpl.Wallet(signerEntry.Signer.SigningPubKey, "0".repeat(64));
         if (signerWallet.classicAddress !== expectedSigner) {
           return {
             valid: false,
@@ -11114,7 +11114,7 @@ var MultiSignOrchestrator = class {
       }
       let unsignedTx;
       try {
-        unsignedTx = decode(unsignedBlob);
+        unsignedTx = xrpl.decode(unsignedBlob);
       } catch {
         return { valid: true };
       }
@@ -11228,7 +11228,7 @@ async function handleWalletSign(context, input) {
   if (!wallet) {
     throw new Error(`Wallet not found: ${input.wallet_address}`);
   }
-  let decoded = decode(input.unsigned_tx);
+  let decoded = xrpl.decode(input.unsigned_tx);
   let transactionBlob = input.unsigned_tx;
   let usedSequence;
   if (input.auto_sequence !== false) {
@@ -11261,7 +11261,7 @@ async function handleWalletSign(context, input) {
         needsReencode = true;
       }
       if (needsReencode) {
-        transactionBlob = encode(decoded);
+        transactionBlob = xrpl.encode(decoded);
       }
     } catch (error) {
       console.warn(
@@ -11396,7 +11396,7 @@ async function handleWalletBalance(context, input) {
   return {
     address: input.wallet_address,
     balance_drops: balance.toString(),
-    balance_xrp: String(dropsToXrp$1(balance.toString())),
+    balance_xrp: String(xrpl.dropsToXrp(balance.toString())),
     // Ensure string type
     reserve_drops: totalReserve.toString(),
     available_drops: available.toString(),
@@ -11418,7 +11418,7 @@ async function handleWalletPolicyCheck(context, input) {
   if (!wallet) {
     throw new Error(`Wallet not found: ${input.wallet_address}`);
   }
-  const decoded = decode(input.unsigned_tx);
+  const decoded = xrpl.decode(input.unsigned_tx);
   const transactionType = decoded["TransactionType"];
   const destinationField = "Destination" in decoded ? decoded["Destination"] : void 0;
   const destination = typeof destinationField === "string" ? destinationField : void 0;
@@ -11465,7 +11465,7 @@ async function handleWalletRotate(context, input) {
   if (!wallet) {
     throw new Error(`Wallet not found: ${input.wallet_address}`);
   }
-  const newRegularKeyWallet = Wallet.generate();
+  const newRegularKeyWallet = xrpl.Wallet.generate();
   const accountInfo = await xrplClient.getAccountInfo(input.wallet_address);
   const fee = await xrplClient.getFee();
   const setRegularKeyTx = {
@@ -11606,7 +11606,7 @@ async function handleWalletFund(context, input) {
     };
   }
   const wsUrl = getWebSocketUrl(input.network);
-  const client = new Client(wsUrl);
+  const client = new xrpl.Client(wsUrl);
   try {
     await client.connect();
     await auditLogger.log({
@@ -11810,7 +11810,7 @@ async function handleTxSubmit(context, input) {
   let account;
   let escrowReference;
   try {
-    const decoded = decode(input.signed_tx);
+    const decoded = xrpl.decode(input.signed_tx);
     const metadata = extractTransactionMetadata(decoded);
     txType = metadata.txType;
     sequenceUsed = metadata.sequenceUsed;
@@ -11859,14 +11859,14 @@ async function handleTxSubmit(context, input) {
   return response;
 }
 async function handleTxDecode(_context, input) {
-  const decoded = decode(input.tx_blob);
+  const decoded = xrpl.decode(input.tx_blob);
   const isSigned = "TxnSignature" in decoded || "Signers" in decoded;
   const signingPubKeyField = "SigningPubKey" in decoded ? decoded["SigningPubKey"] : void 0;
   const signingPublicKey = typeof signingPubKeyField === "string" ? signingPubKeyField : void 0;
   let hash2;
   if (isSigned) {
     try {
-      hash2 = hashes.hashSignedTx(input.tx_blob);
+      hash2 = xrpl.hashes.hashSignedTx(input.tx_blob);
     } catch {
       hash2 = void 0;
     }
