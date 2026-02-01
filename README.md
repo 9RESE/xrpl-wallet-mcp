@@ -143,7 +143,7 @@ Ask Claude: *"Create a new XRPL wallet on testnet for my AI agent"*
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `XRPL_NETWORK` | Yes | - | `mainnet`, `testnet`, or `devnet` |
+| `XRPL_NETWORK` | No | `mainnet` | `mainnet`, `testnet`, or `devnet` |
 | `XRPL_WALLET_PASSWORD` | Yes | - | Master encryption password |
 | `XRPL_WALLET_KEYSTORE_PATH` | No | `~/.xrpl-wallet-mcp` | Keystore location |
 | `XRPL_WALLET_POLICY` | No | Built-in | Path to policy JSON |

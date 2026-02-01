@@ -5,7 +5,7 @@
  *
  * Environment Variables:
  * - XRPL_WALLET_PASSWORD (required): Master encryption password for keystore
- * - XRPL_NETWORK (optional): Target network - mainnet | testnet | devnet (default: testnet)
+ * - XRPL_NETWORK (optional): Target network - mainnet | testnet | devnet (default: mainnet)
  * - XRPL_WALLET_KEYSTORE_PATH (optional): Keystore directory (default: ~/.xrpl-wallet-mcp)
  * - XRPL_WALLET_HMAC_KEY (optional): Hex-encoded 32-byte HMAC key for audit logs
  *
@@ -84,7 +84,7 @@ async function main(): Promise<void> {
   ]);
 
   // 2. Parse configuration from environment
-  const network = parseNetwork(getOptionalEnv('XRPL_NETWORK', 'testnet'));
+  const network = parseNetwork(getOptionalEnv('XRPL_NETWORK', 'mainnet'));
   const keystorePath = getOptionalEnv('XRPL_WALLET_KEYSTORE_PATH', '');
   const hmacKey = getHmacKey();
 
