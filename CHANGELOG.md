@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **wallet_import Tool**: Import existing XRPL wallet from seed with simple default policy
   - Much simpler than `wallet_create` - no complex policy configuration required
   - Uses network-appropriate default policy (testnet: permissive, mainnet: conservative)
-  - Input: `seed` (XRPL seed starting with 's'), `network`, optional `wallet_name`
+  - Input: `seed` (XRPL seed starting with 's'), optional `network` (defaults to server's network), optional `wallet_name`
+  - Network defaults to `XRPL_NETWORK` environment variable, eliminating need to specify it explicitly
   - See [wallet_import documentation](./docs/api/tools/wallet-import.md)
 
 ### Fixed

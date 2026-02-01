@@ -726,9 +726,9 @@ export const WalletImportInputSchema = z
       .describe('XRPL seed (starts with "s")'),
 
     /**
-     * Target network for the wallet
+     * Target network for the wallet (defaults to server's configured network)
      */
-    network: NetworkSchema,
+    network: NetworkSchema.optional(),
 
     /**
      * Human-readable wallet name (optional)

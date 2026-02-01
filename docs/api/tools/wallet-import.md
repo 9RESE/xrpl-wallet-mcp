@@ -17,7 +17,7 @@ For production use with custom policies, see [wallet_create](./wallet-create.md)
 ```json
 {
   "seed": "sEdT83jpRVETN98Kr934Dcgn2LTm7jh",
-  "network": "testnet",
+  "network": "testnet",      // Optional - defaults to server's network
   "wallet_name": "my-escrow-wallet"
 }
 ```
@@ -27,7 +27,7 @@ For production use with custom policies, see [wallet_create](./wallet-create.md)
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `seed` | string | Yes | XRPL seed (starts with 's') |
-| `network` | string | Yes | Target network: `mainnet`, `testnet`, or `devnet` |
+| `network` | string | No | Target network: `mainnet`, `testnet`, or `devnet`. Defaults to server's configured network (XRPL_NETWORK env var) |
 | `wallet_name` | string | No | Human-readable name for the wallet |
 
 ### Seed Format

@@ -20,6 +20,12 @@ import { createTestPolicy } from '../policy/engine.js';
 export type { WalletImportInput } from '../schemas/index.js';
 
 /**
+ * Input type for handleWalletImport with required network
+ * (network is optional in schema but server provides default)
+ */
+export type WalletImportHandlerInput = WalletImportInput & { network: Network };
+
+/**
  * Output from wallet_import tool
  */
 export interface WalletImportOutput {
@@ -52,7 +58,7 @@ export interface WalletImportOutput {
  */
 export async function handleWalletImport(
   context: ServerContext,
-  input: WalletImportInput
+  input: WalletImportHandlerInput
 ): Promise<WalletImportOutput> {
   const { keystore, auditLogger } = context;
 

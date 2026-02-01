@@ -130,6 +130,7 @@ async function main(): Promise<void> {
     signingService,
     auditLogger,
     xrplClient,
+    network,
   };
 
   // 9. Run the MCP server

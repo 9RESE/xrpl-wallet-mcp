@@ -19,7 +19,7 @@ import {
 
 // Import all tool implementations
 import { handleWalletCreate } from './tools/wallet-create.js';
-import { handleWalletImport, type WalletImportInput } from './tools/wallet-import.js';
+import { handleWalletImport, type WalletImportInput, type WalletImportHandlerInput } from './tools/wallet-import.js';
 import { handleWalletSign } from './tools/wallet-sign.js';
 import { handleWalletBalance } from './tools/wallet-balance.js';
 import { handleWalletPolicyCheck } from './tools/wallet-policy-check.js';
@@ -57,6 +57,8 @@ export interface ServerContext {
   signingService: SigningService;
   auditLogger: AuditLogger;
   xrplClient: XRPLClientWrapper;
+  /** The network this server is configured for */
+  network: 'mainnet' | 'testnet' | 'devnet';
 }
 
 /**
@@ -95,15 +97,15 @@ const TOOLS: Tool[] = [
   },
   {
     name: 'wallet_import',
-    description: 'Import an existing XRPL wallet from a seed. Uses a simple default policy suitable for most use cases. Much simpler than wallet_create.',
+    description: 'Import an existing XRPL wallet from a seed. Uses a simple default policy suitable for most use cases. Much simpler than wallet_create. Network defaults to server\'s configured network if not specified.',
     inputSchema: {
       type: 'object',
       properties: {
         seed: { type: 'string', description: 'XRPL seed (starts with "s")' },
-        network: { type: 'string', enum: ['mainnet', 'testnet', 'devnet'] },
+        network: { type: 'string', enum: ['mainnet', 'testnet', 'devnet'], description: 'Target network (defaults to server\'s network)' },
         wallet_name: { type: 'string', description: 'Optional human-readable name' },
       },
-      required: ['seed', 'network'],
+      required: ['seed'],
     },
   },
   {
@@ -341,9 +343,16 @@ export function createServer(context: ServerContext, config?: ServerConfig): Ser
         case 'wallet_create':
           result = await handleWalletCreate(context, validatedInput as z.infer<typeof InputSchemas.wallet_create>);
           break;
-        case 'wallet_import':
-          result = await handleWalletImport(context, validatedInput as WalletImportInput);
+        case 'wallet_import': {
+          // Default network to server's configured network if not specified
+          const importInput = validatedInput as WalletImportInput;
+          const importWithNetwork: WalletImportHandlerInput = {
+            ...importInput,
+            network: importInput.network ?? context.network,
+          };
+          result = await handleWalletImport(context, importWithNetwork);
           break;
+        }
         case 'wallet_sign':
           result = await handleWalletSign(context, validatedInput as z.infer<typeof InputSchemas.wallet_sign>);
           break;
