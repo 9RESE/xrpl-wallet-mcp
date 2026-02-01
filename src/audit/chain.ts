@@ -9,7 +9,7 @@
  * @since 2026-01-28
  */
 
-import { createHmac } from 'crypto';
+import { createHmac, randomBytes } from 'crypto';
 import { z } from 'zod';
 
 // ============================================================================
@@ -516,11 +516,7 @@ export function isValidHmacKey(key: Buffer): boolean {
  * @returns 256-bit HMAC key
  */
 export function generateHmacKey(): Buffer {
-  // Use Node.js crypto for secure random generation
-  // This is imported at the top but we reference it dynamically
-  // to allow for easy mocking in tests
-  const crypto = require('crypto');
-  return crypto.randomBytes(HMAC_KEY_LENGTH);
+  return randomBytes(HMAC_KEY_LENGTH);
 }
 
 /**
