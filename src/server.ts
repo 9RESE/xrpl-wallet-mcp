@@ -19,6 +19,7 @@ import {
 
 // Import all tool implementations
 import { handleWalletCreate } from './tools/wallet-create.js';
+import { handleWalletImport, type WalletImportInput } from './tools/wallet-import.js';
 import { handleWalletSign } from './tools/wallet-sign.js';
 import { handleWalletBalance } from './tools/wallet-balance.js';
 import { handleWalletPolicyCheck } from './tools/wallet-policy-check.js';
@@ -90,6 +91,19 @@ const TOOLS: Tool[] = [
         initial_funding_drops: { type: 'string' },
       },
       required: ['network', 'policy'],
+    },
+  },
+  {
+    name: 'wallet_import',
+    description: 'Import an existing XRPL wallet from a seed. Uses a simple default policy suitable for most use cases. Much simpler than wallet_create.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        seed: { type: 'string', description: 'XRPL seed (starts with "s")' },
+        network: { type: 'string', enum: ['mainnet', 'testnet', 'devnet'] },
+        wallet_name: { type: 'string', description: 'Optional human-readable name' },
+      },
+      required: ['seed', 'network'],
     },
   },
   {
@@ -326,6 +340,9 @@ export function createServer(context: ServerContext, config?: ServerConfig): Ser
       switch (name) {
         case 'wallet_create':
           result = await handleWalletCreate(context, validatedInput as z.infer<typeof InputSchemas.wallet_create>);
+          break;
+        case 'wallet_import':
+          result = await handleWalletImport(context, validatedInput as WalletImportInput);
           break;
         case 'wallet_sign':
           result = await handleWalletSign(context, validatedInput as z.infer<typeof InputSchemas.wallet_sign>);

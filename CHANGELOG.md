@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports `XRPL_WALLET_KEYSTORE_PATH` for custom keystore location
   - Supports `XRPL_WALLET_HMAC_KEY` for persistent audit log verification
 
+- **wallet_import Tool**: Import existing XRPL wallet from seed with simple default policy
+  - Much simpler than `wallet_create` - no complex policy configuration required
+  - Uses network-appropriate default policy (testnet: permissive, mainnet: conservative)
+  - Input: `seed` (XRPL seed starting with 's'), `network`, optional `wallet_name`
+
 ### Fixed
 
 - **ESM/CJS Compatibility**: Fixed `Named export 'ECDSA' not found` error when importing from xrpl package

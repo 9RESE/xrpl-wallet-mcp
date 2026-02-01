@@ -708,6 +708,36 @@ export const WalletCreateInputSchema = z
   .describe('Create a new agent wallet');
 
 /**
+ * Input schema for wallet_import tool
+ *
+ * Imports an existing XRPL wallet from a seed.
+ * Uses a simple default policy - much easier than wallet_create.
+ */
+export const WalletImportInputSchema = z
+  .object({
+    /**
+     * XRPL seed (starts with 's')
+     */
+    seed: z
+      .string()
+      .min(20, 'Seed must be at least 20 characters')
+      .max(40, 'Seed must be at most 40 characters')
+      .regex(/^s[1-9A-HJ-NP-Za-km-z]+$/, 'Invalid XRPL seed format')
+      .describe('XRPL seed (starts with "s")'),
+
+    /**
+     * Target network for the wallet
+     */
+    network: NetworkSchema,
+
+    /**
+     * Human-readable wallet name (optional)
+     */
+    wallet_name: WalletNameSchema.optional(),
+  })
+  .describe('Import an existing wallet from seed');
+
+/**
  * Input schema for wallet_sign tool
  *
  * Signs a transaction after policy evaluation.
@@ -2095,6 +2125,7 @@ export type AgentWalletPolicy = z.infer<typeof AgentWalletPolicySchema>;
 
 // MCP Tool Inputs
 export type WalletCreateInput = z.infer<typeof WalletCreateInputSchema>;
+export type WalletImportInput = z.infer<typeof WalletImportInputSchema>;
 export type WalletSignInput = z.infer<typeof WalletSignInputSchema>;
 export type WalletBalanceInput = z.infer<typeof WalletBalanceInputSchema>;
 export type WalletPolicyCheckInput = z.infer<typeof WalletPolicyCheckInputSchema>;
@@ -2150,6 +2181,7 @@ export type AuditLogEntry = z.infer<typeof AuditLogEntrySchema>;
  */
 export const InputSchemas = {
   wallet_create: WalletCreateInputSchema,
+  wallet_import: WalletImportInputSchema,
   wallet_sign: WalletSignInputSchema,
   wallet_balance: WalletBalanceInputSchema,
   wallet_policy_check: WalletPolicyCheckInputSchema,
