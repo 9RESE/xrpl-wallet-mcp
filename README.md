@@ -48,10 +48,10 @@ A security-first MCP server that provides:
 │  │  (Token bucket)  │  │  (Hash chains)   │  │    (xrpl.js)     │  │
 │  └──────────────────┘  └──────────────────┘  └──────────────────┘  │
 ├─────────────────────────────────────────────────────────────────────┤
-│                         11 MCP Tools                                 │
-│  wallet_create │ wallet_sign │ wallet_balance │ wallet_policy_check │
-│  wallet_rotate │ wallet_list │ wallet_history │ wallet_fund         │
-│  policy_set    │ tx_submit   │ tx_decode                            │
+│                         12 MCP Tools                                 │
+│  wallet_create │ wallet_import │ wallet_sign │ wallet_balance       │
+│  wallet_policy_check │ wallet_rotate │ wallet_list │ wallet_history │
+│  wallet_fund   │ policy_set    │ tx_submit   │ tx_decode            │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -125,6 +125,7 @@ Ask Claude: *"Create a new XRPL wallet on testnet for my AI agent"*
 | Tool | Purpose | Sensitivity |
 |------|---------|-------------|
 | `wallet_create` | Create new wallet with policy | HIGH |
+| `wallet_import` | Import existing wallet from seed | HIGH |
 | `wallet_sign` | Sign transaction (policy-controlled) | CRITICAL |
 | `wallet_balance` | Query balance and reserves | LOW |
 | `wallet_policy_check` | Dry-run policy evaluation | LOW |
@@ -274,7 +275,7 @@ See [ADR-011](./docs/architecture/09-decisions/ADR-011-security-remediation.md) 
 - [OWASP LLM Mitigations](./docs/security/owasp-llm-mitigations.md) - Top 10 coverage
 
 ### API Reference
-- [Tool Specifications](./docs/api/tools/) - All 11 MCP tools
+- [Tool Specifications](./docs/api/tools/) - All 12 MCP tools
 - [Policy Schema](./docs/api/policy-schema.md) - Complete policy format
 - [Network Configuration](./docs/api/network-config.md) - Network setup
 
@@ -323,7 +324,7 @@ npm run test:security      # Security tests
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| **1 (MVP)** | Local keystore, policy engine, 11 MCP tools | ✅ **Complete** |
+| **1 (MVP)** | Local keystore, policy engine, 12 MCP tools | ✅ **Complete** |
 | **2** | Cloud KMS (AWS/GCP), HSM integration | Planned |
 | **3** | TEE deployment (AWS Nitro), KYA identity | Future |
 

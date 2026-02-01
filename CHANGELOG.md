@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Much simpler than `wallet_create` - no complex policy configuration required
   - Uses network-appropriate default policy (testnet: permissive, mainnet: conservative)
   - Input: `seed` (XRPL seed starting with 's'), `network`, optional `wallet_name`
+  - See [wallet_import documentation](./docs/api/tools/wallet-import.md)
 
 ### Fixed
 
@@ -31,6 +32,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added separate type imports for TypeScript type annotations
   - Affects 11 source files: keystore/local.ts, signing/service.ts, signing/multisig.ts, xrpl/client.ts, and 7 tool files
   - Added ripple-keypairs, ripple-address-codec, @xrplf/isomorphic to tsup externals to fix `Dynamic require of "crypto"` error
+
+### Documentation
+
+- Added [wallet_import API documentation](./docs/api/tools/wallet-import.md)
+- Updated README.md: tool count 11→12, added wallet_import to tools table
+- Updated CLAUDE.md: added wallet_import to MCP Tools Reference
+- Updated getting-started tutorial: added wallet_import as simpler alternative
 
 ## [0.1.1] - 2026-01-28
 

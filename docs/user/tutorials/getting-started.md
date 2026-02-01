@@ -129,7 +129,19 @@ In Claude Desktop, you should see the XRPL wallet tools available. You can ask C
 
 ## Step 3: Create Your First Wallet
 
-Now let's create a testnet wallet. Ask Claude:
+Now let's create a testnet wallet. You have two options:
+
+### Option A: Import an Existing Wallet (Simpler)
+
+If you already have an XRPL wallet seed, use `wallet_import` for a simpler setup with default policies:
+
+> "Import my XRPL wallet with seed sEdT83jpRVETN98Kr934Dcgn2LTm7jh on testnet"
+
+This applies a sensible default policy automatically - no policy configuration needed.
+
+### Option B: Create a New Wallet with Custom Policy
+
+For more control, ask Claude:
 
 > "Create a new XRPL testnet wallet with a conservative policy for development testing."
 
@@ -418,6 +430,7 @@ Before using on mainnet:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2026-01-31 | Documentation Manager | Added wallet_import option |
 | 1.0.0 | 2026-01-28 | Documentation Manager | Initial tutorial |
 
 ---

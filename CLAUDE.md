@@ -77,6 +77,7 @@ Full ADRs: `docs/architecture/09-decisions/`
 | Tool | Sensitivity | Purpose |
 |------|-------------|---------|
 | `wallet_create` | HIGH | Create wallet with policy |
+| `wallet_import` | HIGH | Import existing wallet from seed |
 | `wallet_sign` | CRITICAL | Sign transaction (policy-controlled) |
 | `wallet_balance` | LOW | Query balance and reserves |
 | `wallet_policy_check` | LOW | Dry-run policy evaluation |
@@ -332,4 +333,4 @@ When working on this codebase:
 ---
 
 *Specification Version: 1.0.0*
-*Last Updated: 2026-01-28*
+*Last Updated: 2026-01-31*
