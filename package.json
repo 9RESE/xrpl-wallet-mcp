@@ -22,7 +22,7 @@
     "LICENSE"
   ],
   "bin": {
-    "xrpl-wallet-mcp": "./dist/index.js"
+    "xrpl-wallet-mcp": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsup",

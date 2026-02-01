@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.2] - 2026-01-31
 
+### Added
+
+- **CLI Bootstrap** (`src/cli.ts`): Entry point that initializes all services from environment variables and runs the MCP server
+  - Validates required `XRPL_WALLET_PASSWORD` at startup
+  - Supports `XRPL_NETWORK` (mainnet/testnet/devnet, default: testnet)
+  - Supports `XRPL_WALLET_KEYSTORE_PATH` for custom keystore location
+  - Supports `XRPL_WALLET_HMAC_KEY` for persistent audit log verification
+
 ### Fixed
 
 - **ESM/CJS Compatibility**: Fixed `Named export 'ECDSA' not found` error when importing from xrpl package
