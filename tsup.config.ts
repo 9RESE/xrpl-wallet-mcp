@@ -11,7 +11,12 @@ export default defineConfig({
   treeshake: true,
   target: 'node22',
   outDir: 'dist',
-  external: ['xrpl'],
+  external: [
+    'xrpl',
+    'ripple-keypairs',
+    'ripple-address-codec',
+    '@xrplf/isomorphic',
+  ],
   esbuildOptions(options) {
     options.banner = {
       js: '#!/usr/bin/env node',

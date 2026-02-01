@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Changed all xrpl imports from named imports to namespace imports (`import * as xrpl from 'xrpl'`)
   - Added separate type imports for TypeScript type annotations
   - Affects 11 source files: keystore/local.ts, signing/service.ts, signing/multisig.ts, xrpl/client.ts, and 7 tool files
+  - Added ripple-keypairs, ripple-address-codec, @xrplf/isomorphic to tsup externals to fix `Dynamic require of "crypto"` error
 
 ## [0.1.1] - 2026-01-28
 
