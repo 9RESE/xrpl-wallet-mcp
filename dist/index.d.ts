@@ -3581,6 +3581,8 @@ interface ServerContext {
     signingService: SigningService;
     auditLogger: AuditLogger;
     xrplClient: XRPLClientWrapper;
+    /** The network this server is configured for */
+    network: 'mainnet' | 'testnet' | 'devnet';
 }
 /**
  * Server configuration options.

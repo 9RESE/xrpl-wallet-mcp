@@ -1073,20 +1073,20 @@ declare const WalletImportInputSchema: z.ZodObject<{
      */
     seed: z.ZodString;
     /**
-     * Target network for the wallet
+     * Target network for the wallet (defaults to server's configured network)
      */
-    network: z.ZodEnum<["mainnet", "testnet", "devnet"]>;
+    network: z.ZodOptional<z.ZodEnum<["mainnet", "testnet", "devnet"]>>;
     /**
      * Human-readable wallet name (optional)
      */
     wallet_name: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    network: "mainnet" | "testnet" | "devnet";
     seed: string;
+    network?: "mainnet" | "testnet" | "devnet" | undefined;
     wallet_name?: string | undefined;
 }, {
-    network: "mainnet" | "testnet" | "devnet";
     seed: string;
+    network?: "mainnet" | "testnet" | "devnet" | undefined;
     wallet_name?: string | undefined;
 }>;
 /**
@@ -3933,20 +3933,20 @@ declare const InputSchemas: {
          */
         seed: z.ZodString;
         /**
-         * Target network for the wallet
+         * Target network for the wallet (defaults to server's configured network)
          */
-        network: z.ZodEnum<["mainnet", "testnet", "devnet"]>;
+        network: z.ZodOptional<z.ZodEnum<["mainnet", "testnet", "devnet"]>>;
         /**
          * Human-readable wallet name (optional)
          */
         wallet_name: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        network: "mainnet" | "testnet" | "devnet";
         seed: string;
+        network?: "mainnet" | "testnet" | "devnet" | undefined;
         wallet_name?: string | undefined;
     }, {
-        network: "mainnet" | "testnet" | "devnet";
         seed: string;
+        network?: "mainnet" | "testnet" | "devnet" | undefined;
         wallet_name?: string | undefined;
     }>;
     readonly wallet_sign: z.ZodObject<{
