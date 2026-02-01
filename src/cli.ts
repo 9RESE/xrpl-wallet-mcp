@@ -137,7 +137,7 @@ async function main(): Promise<void> {
   console.error('[cli] Starting MCP server on stdio...');
   await runServer(context, {
     name: 'xrpl-agent-wallet-mcp',
-    version: '0.1.2',
+    version: '0.2.0',
   });
 }
 

@@ -423,7 +423,7 @@ declare const AuditLogInputSchema: z.ZodObject<{
     context?: string | undefined;
     wallet_id?: string | undefined;
     tx_hash?: string | undefined;
-    tier?: 1 | 2 | 3 | 4 | undefined;
+    tier?: 3 | 1 | 2 | 4 | undefined;
     destination?: string | undefined;
     transaction_type?: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "CredentialAccept" | "CredentialCreate" | "CredentialDelete" | "DelegateSet" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "MPTokenAuthorize" | "MPTokenIssuanceCreate" | "MPTokenIssuanceDestroy" | "MPTokenIssuanceSet" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "OracleDelete" | "OracleSet" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "PermissionedDomainDelete" | "PermissionedDomainSet" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge" | undefined;
     amount_xrp?: string | undefined;
@@ -434,7 +434,7 @@ declare const AuditLogInputSchema: z.ZodObject<{
     context?: string | undefined;
     wallet_id?: string | undefined;
     tx_hash?: string | undefined;
-    tier?: 1 | 2 | 3 | 4 | undefined;
+    tier?: 3 | 1 | 2 | 4 | undefined;
     destination?: string | undefined;
     transaction_type?: "AccountDelete" | "AccountSet" | "AMMBid" | "AMMCreate" | "AMMDelete" | "AMMDeposit" | "AMMVote" | "AMMWithdraw" | "CheckCancel" | "CheckCash" | "CheckCreate" | "Clawback" | "CredentialAccept" | "CredentialCreate" | "CredentialDelete" | "DelegateSet" | "DepositPreauth" | "DIDDelete" | "DIDSet" | "EnableAmendment" | "EscrowCancel" | "EscrowCreate" | "EscrowFinish" | "MPTokenAuthorize" | "MPTokenIssuanceCreate" | "MPTokenIssuanceDestroy" | "MPTokenIssuanceSet" | "NFTokenAcceptOffer" | "NFTokenBurn" | "NFTokenCancelOffer" | "NFTokenCreateOffer" | "NFTokenMint" | "OfferCancel" | "OfferCreate" | "OracleDelete" | "OracleSet" | "Payment" | "PaymentChannelClaim" | "PaymentChannelCreate" | "PaymentChannelFund" | "PermissionedDomainDelete" | "PermissionedDomainSet" | "SetFee" | "SetRegularKey" | "SignerListSet" | "TicketCreate" | "TrustSet" | "UNLModify" | "XChainAccountCreateCommit" | "XChainAddClaimAttestation" | "XChainClaim" | "XChainCommit" | "XChainCreateBridge" | "XChainCreateClaimID" | "XChainModifyBridge" | undefined;
     amount_xrp?: string | undefined;
