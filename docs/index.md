@@ -208,7 +208,7 @@ A secure MCP server providing:
 ```
 
 **Key Components:**
-- **MCP Tool Layer** - 11 tools for wallet operations
+- **MCP Tool Layer** - 12 tools for wallet operations
 - **Policy Engine** - Transaction validation and approval
 - **Keystore** - Encrypted key management
 - **Audit Logger** - Comprehensive activity logging
@@ -268,7 +268,7 @@ Phase 1 (MVP) implementation is **COMPLETE**.
 
 ### Included
 - Full security architecture with threat modeling
-- Complete API specification for 11 MCP tools
+- Complete API specification for 12 MCP tools
 - Detailed component specifications
 - Comprehensive test specifications
 - User documentation following Diataxis framework

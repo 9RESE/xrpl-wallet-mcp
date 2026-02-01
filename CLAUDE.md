@@ -34,7 +34,7 @@
 | **ADR-006** | Zod schema validation | Type-safe, composable, excellent error messages |
 | **ADR-007** | Token bucket rate limiting | Per-tool, per-wallet, burst-tolerant |
 | **ADR-008** | Composable MCP design | Works standalone or with xrpl-escrow-mcp |
-| **ADR-009** | All 32 XRPL TX types supported | Future-proof, not limited to escrow |
+| **ADR-009** | All 47 XRPL TX types supported | Future-proof, not limited to escrow |
 | **ADR-010** | Network-isolated keystores | Prevents mainnet/testnet accidents |
 
 Full ADRs: `docs/architecture/09-decisions/`

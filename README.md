@@ -88,7 +88,7 @@ xrpl-escrow-mcp              xrpl-wallet-mcp              XRPL Network
 (builds unsigned TX)    →    (signs with policy)     →    (validates)
 ```
 
-But it's not limited to escrow - it supports **all 32 XRPL transaction types**.
+But it's not limited to escrow - it supports **all 47 XRPL transaction types**.
 
 ## Quick Start
 

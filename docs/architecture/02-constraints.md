@@ -413,7 +413,7 @@ Example:
 |------------|-----------|------------|
 | SC-01 (64MB memory) | Limits concurrent authentications | Rate limiting; async processing |
 | TC-08 (JSON policies) | Larger file size vs binary | Compression optional; readability prioritized |
-| XC-01 (10 XRP reserve) | High barrier for testing | Testnet/devnet alternatives documented |
+| XC-01 (1 XRP reserve) | Low barrier for testing | Testnet/devnet faucets provide ~100 XRP |
 | RC-04 (7-year retention) | Storage costs | Log rotation; archival storage |
 
 ### 8.3 Constraint Validation Matrix

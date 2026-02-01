@@ -458,12 +458,14 @@ Total Reserve = Base Reserve + (Owner Count * Owner Reserve)
 Available Balance = Total Balance - Total Reserve
 ```
 
-### Current Reserve Values
+### Current Reserve Values (Updated December 2024)
 
 | Parameter | Mainnet | Testnet | Notes |
 |-----------|---------|---------|-------|
-| Base Reserve | 10 XRP | 10 XRP | Required for account activation |
-| Owner Reserve | 2 XRP | 2 XRP | Per owned object (trust lines, offers, etc.) |
+| Base Reserve | 1 XRP | 1 XRP | Required for account activation |
+| Owner Reserve | 0.2 XRP | 0.2 XRP | Per owned object (escrows, trust lines, offers, etc.) |
+
+> **Note**: Reserves were lowered in December 2024. See [Network Costs Reference](../../user/reference/network-costs.md) for details.
 
 ### Implementation
 
@@ -717,7 +719,7 @@ interface WalletBalanceError {
     "details": {
       "address": "rExampleAddress...",
       "network": "mainnet",
-      "minimum_activation": "10 XRP"
+      "minimum_activation": "1 XRP"
     }
   }
 }

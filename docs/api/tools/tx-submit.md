@@ -1358,7 +1358,7 @@ interface TxSubmitAuditEvent {
     "failed_at": "2026-01-28T14:30:06.000Z",
     "ledger_index": 85500205,
     "retryable": false,
-    "suggestion": "Destination account is not funded. Send at least 10 XRP (base reserve) to create the account."
+    "suggestion": "Destination account is not funded. Send at least 1 XRP (base reserve) to create the account."
   },
   "id": "4"
 }

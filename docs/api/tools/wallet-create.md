@@ -972,7 +972,7 @@ For mainnet, manual funding is required:
 
 1. `wallet_create` returns the new address
 2. User manually sends XRP from their existing wallet
-3. Minimum 10 XRP required for account reserve
+3. Minimum 1 XRP required for account reserve (as of Dec 2024)
 4. Use `wallet_fund` tool with mainnet-funded source (requires external signing)
 
 ---

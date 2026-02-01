@@ -215,7 +215,7 @@ Queries current balance and account state for a wallet.
 | `balance.xrp` | string | Total XRP balance |
 | `balance.drops` | string | Balance in drops |
 | `balance.available_xrp` | string | Spendable after reserves |
-| `reserves.base_drops` | string | Base reserve (10 XRP) |
+| `reserves.base_drops` | string | Base reserve (1 XRP as of Dec 2024) |
 | `reserves.owner_drops` | string | Owner reserve per object |
 | `account.sequence` | number | Account sequence |
 | `account.regular_key` | string | Regular key (if set) |

@@ -1496,6 +1496,23 @@ Different tiers based on value:
 | DIDDelete | DID | Strict | Standard | No |
 | OracleSet | Oracle | Strict | Standard | No |
 | OracleDelete | Oracle | Strict | Standard | No |
+| MPTokenAuthorize | MPT | Strict | Standard | No |
+| MPTokenIssuanceCreate | MPT | Co-sign | High | No |
+| MPTokenIssuanceDestroy | MPT | Co-sign | High | No |
+| MPTokenIssuanceSet | MPT | Strict | Standard | No |
+| CredentialCreate | Credentials | Strict | Standard | No |
+| CredentialAccept | Credentials | Strict | Standard | No |
+| CredentialDelete | Credentials | Strict | Standard | No |
+| PermissionedDomainSet | Permissioned | Co-sign | High | No |
+| PermissionedDomainDelete | Permissioned | Co-sign | High | No |
+| DelegateSet | Delegation | Co-sign | Critical | No |
+| XChainAccountCreateCommit | XChain | Strict | Standard | Yes |
+| XChainAddClaimAttestation | XChain | Strict | Standard | No |
+| XChainClaim | XChain | Strict | Standard | No |
+| XChainCommit | XChain | Strict | Standard | No |
+| XChainCreateBridge | XChain | Co-sign | High | No |
+| XChainCreateClaimID | XChain | Strict | Standard | No |
+| XChainModifyBridge | XChain | Co-sign | High | No |
 | Clawback | Clawback | Prohibited | Critical | No |
 
 ---
@@ -1518,4 +1535,6 @@ Different tiers based on value:
 
 ---
 
-*XRPL Agent Wallet MCP - Supported Transaction Types Reference v1.0.0*
+*XRPL Agent Wallet MCP - Supported Transaction Types Reference v1.1.0*
+
+*Updated January 2026 - Added MPT, Credentials, Permissioned Domains, Delegation, and XChain transaction types*

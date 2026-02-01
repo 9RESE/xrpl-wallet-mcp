@@ -107,7 +107,7 @@ Duration    ~500ms
 ### 6. MCP Server (`src/server.ts`)
 
 - **MCP SDK Integration** - @modelcontextprotocol/sdk
-- **Tool Registration** - 11 tools with Zod schemas
+- **Tool Registration** - 12 tools with Zod schemas
 - **Error Handling** - Structured error responses
 - **Dependency Injection** - ServerContext pattern
 
@@ -116,6 +116,7 @@ Duration    ~500ms
 | Tool | File | Sensitivity |
 |------|------|-------------|
 | `wallet_create` | wallet-create.ts | HIGH |
+| `wallet_import` | wallet-import.ts | HIGH |
 | `wallet_sign` | wallet-sign.ts | CRITICAL |
 | `wallet_balance` | wallet-balance.ts | LOW |
 | `wallet_policy_check` | wallet-policy-check.ts | LOW |
@@ -139,7 +140,7 @@ Duration    ~500ms
 | ADR-006 | Zod schema validation | ✅ Implemented |
 | ADR-007 | Token bucket rate limiting | ✅ Implemented |
 | ADR-008 | Composable MCP design | ✅ Implemented |
-| ADR-009 | All 32 XRPL TX types supported | ✅ Implemented |
+| ADR-009 | All 47 XRPL TX types supported | ✅ Implemented |
 | ADR-010 | Network-isolated keystores | ✅ Implemented |
 
 ## Build Output
