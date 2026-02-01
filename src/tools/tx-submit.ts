@@ -12,7 +12,7 @@
  * @since 2026-01-29 - Added next_sequence tracking to fix race condition
  */
 
-import { decode } from 'xrpl';
+import * as xrpl from 'xrpl';
 import type { ServerContext } from '../server.js';
 import type { TxSubmitInput, TxSubmitOutput, TransactionType, EscrowReference } from '../schemas/index.js';
 import { getSequenceTracker } from '../xrpl/sequence-tracker.js';
@@ -76,7 +76,7 @@ export async function handleTxSubmit(
   let escrowReference: EscrowReference | undefined;
 
   try {
-    const decoded = decode(input.signed_tx) as Record<string, unknown>;
+    const decoded = xrpl.decode(input.signed_tx) as Record<string, unknown>;
     const metadata = extractTransactionMetadata(decoded);
     txType = metadata.txType;
     sequenceUsed = metadata.sequenceUsed;

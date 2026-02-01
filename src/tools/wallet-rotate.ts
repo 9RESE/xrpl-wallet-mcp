@@ -15,7 +15,8 @@
  * @version 1.0.0
  */
 
-import { Wallet, type SetRegularKey } from 'xrpl';
+import * as xrpl from 'xrpl';
+import type { SetRegularKey } from 'xrpl';
 import type { ServerContext } from '../server.js';
 import type { WalletRotateInput, WalletRotateOutput } from '../schemas/index.js';
 import { getWalletPassword } from '../utils/env.js';
@@ -48,7 +49,7 @@ export async function handleWalletRotate(
 
   // Step 2: Generate new regular key pair
   // Using Ed25519 for better performance and security
-  const newRegularKeyWallet = Wallet.generate();
+  const newRegularKeyWallet = xrpl.Wallet.generate();
 
   // Step 3: Get current account info for sequence number
   const accountInfo = await xrplClient.getAccountInfo(input.wallet_address);

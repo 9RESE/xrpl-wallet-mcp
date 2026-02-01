@@ -8,7 +8,7 @@
  * @version 2.0.0
  */
 
-import { Client } from 'xrpl';
+import * as xrpl from 'xrpl';
 import type { ServerContext } from '../server.js';
 import type { WalletFundInput, WalletFundOutput } from '../schemas/index.js';
 import { getWebSocketUrl, getFaucetUrl } from '../xrpl/config.js';
@@ -67,7 +67,7 @@ export async function handleWalletFund(
   const wsUrl = getWebSocketUrl(input.network);
 
   // Create a temporary client for this operation
-  const client = new Client(wsUrl);
+  const client = new xrpl.Client(wsUrl);
 
   try {
     // Connect to XRPL

@@ -7,7 +7,7 @@
  * @version 1.0.0
  */
 
-import { decode } from 'xrpl';
+import * as xrpl from 'xrpl';
 import type { ServerContext } from '../server.js';
 import type { WalletPolicyCheckInput, WalletPolicyCheckOutput } from '../schemas/index.js';
 
@@ -36,7 +36,7 @@ export async function handleWalletPolicyCheck(
   }
 
   // Decode transaction to extract fields (use bracket notation for index signature)
-  const decoded = decode(input.unsigned_tx);
+  const decoded = xrpl.decode(input.unsigned_tx);
   const transactionType = decoded['TransactionType'] as string;
   const destinationField = 'Destination' in decoded ? decoded['Destination'] : undefined;
   const destination = typeof destinationField === 'string' ? destinationField : undefined;

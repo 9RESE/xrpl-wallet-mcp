@@ -1,6 +1,6 @@
 {
   "name": "xrpl-agent-wallet-mcp",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "XRPL Agent Wallet MCP Server - Secure, policy-controlled wallet infrastructure for AI agents on the XRP Ledger",
   "type": "module",
   "main": "./dist/index.js",

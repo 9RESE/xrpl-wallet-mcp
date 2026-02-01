@@ -5,6 +5,15 @@ All notable changes to the XRPL Agent Wallet MCP server will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-01-31
+
+### Fixed
+
+- **ESM/CJS Compatibility**: Fixed `Named export 'ECDSA' not found` error when importing from xrpl package
+  - Changed all xrpl imports from named imports to namespace imports (`import * as xrpl from 'xrpl'`)
+  - Added separate type imports for TypeScript type annotations
+  - Affects 11 source files: keystore/local.ts, signing/service.ts, signing/multisig.ts, xrpl/client.ts, and 7 tool files
+
 ## [0.1.1] - 2026-01-28
 
 ### Security

@@ -8,7 +8,7 @@
  * @version 2.0.0
  */
 
-import { dropsToXrp } from 'xrpl';
+import * as xrpl from 'xrpl';
 import type { ServerContext } from '../server.js';
 import type { WalletBalanceInput, WalletBalanceOutput } from '../schemas/index.js';
 
@@ -84,7 +84,7 @@ export async function handleWalletBalance(
   return {
     address: input.wallet_address,
     balance_drops: balance.toString(),
-    balance_xrp: String(dropsToXrp(balance.toString())), // Ensure string type
+    balance_xrp: String(xrpl.dropsToXrp(balance.toString())), // Ensure string type
     reserve_drops: totalReserve.toString(),
     available_drops: available.toString(),
     sequence: accountInfo.sequence, // Keep as number per schema

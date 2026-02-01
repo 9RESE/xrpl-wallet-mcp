@@ -21,7 +21,8 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import * as argon2 from 'argon2';
-import { Wallet, ECDSA } from 'xrpl';
+import * as xrpl from 'xrpl';
+import type { Wallet } from 'xrpl';
 
 import { SecureBuffer } from './secure-buffer.js';
 import {
@@ -561,8 +562,8 @@ export class LocalKeystore implements KeystoreProvider {
     // Generate wallet using xrpl library
     const algorithm = options?.algorithm || 'ed25519';
     // Map our algorithm type to xrpl's ECDSA enum
-    const xrplAlgorithm = algorithm === 'secp256k1' ? ECDSA.secp256k1 : ECDSA.ed25519;
-    const xrplWallet = Wallet.generate(xrplAlgorithm);
+    const xrplAlgorithm = algorithm === 'secp256k1' ? xrpl.ECDSA.secp256k1 : xrpl.ECDSA.ed25519;
+    const xrplWallet = xrpl.Wallet.generate(xrplAlgorithm);
 
     // Get seed for storage
     const seedString = xrplWallet.seed;
@@ -722,15 +723,15 @@ export class LocalKeystore implements KeystoreProvider {
     try {
       if (keyBuffer.length === 16) {
         // 16 bytes = entropy
-        xrplWallet = Wallet.fromEntropy(keyBuffer);
+        xrplWallet = xrpl.Wallet.fromEntropy(keyBuffer);
       } else if (keyBuffer.length >= 29 && keyBuffer.length <= 35) {
         // Likely a base58-encoded seed string
         const seedString = keyBuffer.toString('utf-8');
-        xrplWallet = Wallet.fromSeed(seedString);
+        xrplWallet = xrpl.Wallet.fromSeed(seedString);
       } else {
         // Try as entropy first, fall back to treating as seed bytes
         try {
-          xrplWallet = Wallet.fromEntropy(keyBuffer.slice(0, 16));
+          xrplWallet = xrpl.Wallet.fromEntropy(keyBuffer.slice(0, 16));
         } catch {
           throw new InvalidKeyError('Could not derive wallet from key');
         }

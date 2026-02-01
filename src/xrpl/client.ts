@@ -9,7 +9,8 @@
  * @since 2026-01-28
  */
 
-import { Client, type TxResponse, type AccountInfoResponse, type SubmitResponse } from 'xrpl';
+import * as xrpl from 'xrpl';
+import type { Client, TxResponse, AccountInfoResponse, SubmitResponse, ServerInfoResponse } from 'xrpl';
 import type { Network, XRPLAddress, TransactionHash } from '../schemas/index.js';
 import {
   getWebSocketUrl,
@@ -249,7 +250,7 @@ export class XRPLClientWrapper {
     };
 
     // Initialize xrpl.js client
-    this.client = new Client(this.nodeUrl);
+    this.client = new xrpl.Client(this.nodeUrl);
   }
 
   /**
@@ -324,7 +325,7 @@ export class XRPLClientWrapper {
           } catch {
             // Ignore disconnect errors
           }
-          this.client = new Client(url);
+          this.client = new xrpl.Client(url);
         }
 
         await this.client.connect();
@@ -367,13 +368,13 @@ export class XRPLClientWrapper {
    * @throws {XRPLClientError} If request times out
    */
   public async getServerInfo(): Promise<ServerInfo> {
-    const response = await withTimeout(
+    const response = (await withTimeout(
       this.client.request({
         command: 'server_info',
       }),
       this.connectionConfig.requestTimeout,
       'server_info'
-    );
+    )) as ServerInfoResponse;
 
     const info = response.result.info;
     return {
@@ -549,7 +550,7 @@ export class XRPLClientWrapper {
       forward: options.forward ?? false,
     });
 
-    return response.result.transactions.map((tx) => (tx as { tx: unknown }).tx);
+    return response.result.transactions.map((tx: unknown) => (tx as { tx: unknown }).tx);
   }
 
   /**

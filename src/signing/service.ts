@@ -8,7 +8,8 @@
  * @version 1.0.0
  */
 
-import { Wallet, decode, encode, type Transaction } from 'xrpl';
+import * as xrpl from 'xrpl';
+import type { Transaction, Wallet } from 'xrpl';
 import type { KeystoreProvider } from '../keystore/interface.js';
 import { SecureBuffer } from '../keystore/secure-buffer.js';
 import type { AuditLogger } from '../audit/logger.js';
@@ -154,7 +155,7 @@ export class SigningService {
       let transaction: Transaction;
       if (typeof unsignedTx === 'string') {
         try {
-          transaction = decode(unsignedTx) as Transaction;
+          transaction = xrpl.decode(unsignedTx) as Transaction;
         } catch (error) {
           throw new SigningError(
             'TRANSACTION_DECODE_ERROR',
@@ -212,7 +213,7 @@ export class SigningService {
       try {
         // Convert buffer to seed string for xrpl.js Wallet
         const seedString = secureKey.getBuffer().toString('utf-8');
-        wallet = Wallet.fromSeed(seedString);
+        wallet = xrpl.Wallet.fromSeed(seedString);
 
         // For master key, verify address matches
         // For regular key, address will be different (that's expected)
@@ -308,7 +309,7 @@ export class SigningService {
    */
   decodeTransaction(txBlob: string): Transaction {
     try {
-      return decode(txBlob) as Transaction;
+      return xrpl.decode(txBlob) as Transaction;
     } catch (error) {
       throw new SigningError(
         'TRANSACTION_DECODE_ERROR',
@@ -327,7 +328,7 @@ export class SigningService {
    */
   encodeTransaction(transaction: Transaction): string {
     try {
-      return encode(transaction);
+      return xrpl.encode(transaction);
     } catch (error) {
       throw new SigningError(
         'TRANSACTION_ENCODE_ERROR',

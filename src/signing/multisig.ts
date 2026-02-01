@@ -9,7 +9,8 @@
  */
 
 import { randomUUID } from 'crypto';
-import { Client, Wallet, multisign, decode, type Transaction } from 'xrpl';
+import * as xrpl from 'xrpl';
+import type { Transaction, Client, Wallet } from 'xrpl';
 import { verify } from 'ripple-keypairs';
 import type { AuditLogger } from '../audit/logger.js';
 
@@ -433,7 +434,7 @@ export class MultiSignOrchestrator {
     let decodedTx: Transaction;
     try {
       const { decode } = await import('xrpl');
-      decodedTx = decode(unsignedTx) as Transaction;
+      decodedTx = xrpl.decode(unsignedTx) as Transaction;
     } catch (error) {
       throw new MultiSignError(
         'INVALID_TRANSACTION',
@@ -674,7 +675,7 @@ export class MultiSignOrchestrator {
       throw new MultiSignError('NO_SIGNATURES', 'No signatures collected');
     }
 
-    const multiSignedTx = multisign(signatures);
+    const multiSignedTx = xrpl.multisign(signatures);
 
     // Submit to XRPL
     let txHash: string;
@@ -865,7 +866,7 @@ export class MultiSignOrchestrator {
       // Decode the signed transaction
       let signedTx: any;
       try {
-        signedTx = decode(signatureBlob);
+        signedTx = xrpl.decode(signatureBlob);
       } catch (error) {
         return { valid: false, reason: 'Invalid transaction blob format' };
       }
@@ -881,7 +882,7 @@ export class MultiSignOrchestrator {
         if (signedTx.SigningPubKey) {
           // Derive address from public key and verify
           try {
-            const signerWallet = new Wallet(signedTx.SigningPubKey, '0'.repeat(64));
+            const signerWallet = new xrpl.Wallet(signedTx.SigningPubKey, '0'.repeat(64));
             if (signerWallet.classicAddress !== expectedSigner) {
               return {
                 valid: false,
@@ -915,7 +916,7 @@ export class MultiSignOrchestrator {
 
       // Verify the public key corresponds to the claimed address
       try {
-        const signerWallet = new Wallet(signerEntry.Signer.SigningPubKey, '0'.repeat(64));
+        const signerWallet = new xrpl.Wallet(signerEntry.Signer.SigningPubKey, '0'.repeat(64));
         if (signerWallet.classicAddress !== expectedSigner) {
           return {
             valid: false,
@@ -929,7 +930,7 @@ export class MultiSignOrchestrator {
       // Decode the unsigned transaction to compare core fields
       let unsignedTx: any;
       try {
-        unsignedTx = decode(unsignedBlob);
+        unsignedTx = xrpl.decode(unsignedBlob);
       } catch {
         // If we can't decode the unsigned blob, skip field comparison
         return { valid: true };

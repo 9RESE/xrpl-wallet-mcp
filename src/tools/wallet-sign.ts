@@ -13,7 +13,8 @@
  * @since 2026-01-29 - Added local sequence tracking to fix race condition
  */
 
-import { decode, encode, type Transaction } from 'xrpl';
+import * as xrpl from 'xrpl';
+import type { Transaction } from 'xrpl';
 import type { ServerContext } from '../server.js';
 import type { WalletSignInput, WalletSignOutput } from '../schemas/index.js';
 import { getWalletPassword } from '../utils/env.js';
@@ -51,7 +52,7 @@ export async function handleWalletSign(
   }
 
   // Decode transaction to extract fields
-  let decoded = decode(input.unsigned_tx) as Transaction & Record<string, unknown>;
+  let decoded = xrpl.decode(input.unsigned_tx) as Transaction & Record<string, unknown>;
 
   // Auto-sequence: fetch fresh sequence from ledger with local tracking (default: true)
   // This prevents tefPAST_SEQ errors in multi-transaction workflows
@@ -109,7 +110,7 @@ export async function handleWalletSign(
 
       // Re-encode transaction if we modified it
       if (needsReencode) {
-        transactionBlob = encode(decoded);
+        transactionBlob = xrpl.encode(decoded);
       }
     } catch (error) {
       // Log warning but continue with original transaction

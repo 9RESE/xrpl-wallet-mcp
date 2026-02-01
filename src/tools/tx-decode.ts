@@ -7,7 +7,7 @@
  * @version 1.0.0
  */
 
-import { decode, hashes } from 'xrpl';
+import * as xrpl from 'xrpl';
 import type { ServerContext } from '../server.js';
 import type { TxDecodeInput, TxDecodeOutput } from '../schemas/index.js';
 
@@ -26,7 +26,7 @@ export async function handleTxDecode(
   input: TxDecodeInput
 ): Promise<TxDecodeOutput> {
   // Decode transaction blob
-  const decoded = decode(input.tx_blob);
+  const decoded = xrpl.decode(input.tx_blob);
 
   // Check if transaction is signed (has TxnSignature or Signers)
   const isSigned = 'TxnSignature' in decoded || 'Signers' in decoded;
@@ -39,7 +39,7 @@ export async function handleTxDecode(
   let hash: string | undefined;
   if (isSigned) {
     try {
-      hash = hashes.hashSignedTx(input.tx_blob);
+      hash = xrpl.hashes.hashSignedTx(input.tx_blob);
     } catch {
       // Hash calculation failed - might be malformed
       hash = undefined;
