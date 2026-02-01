@@ -294,6 +294,16 @@ export class XRPLClientWrapper {
   }
 
   /**
+   * Ensure the client is connected before making requests.
+   * Auto-connects if not already connected.
+   */
+  private async ensureConnected(): Promise<void> {
+    if (!this.client.isConnected()) {
+      await this.connect();
+    }
+  }
+
+  /**
    * Reconnect with exponential backoff (iterative, not recursive)
    *
    * @throws {MaxReconnectAttemptsError} If max attempts exceeded
@@ -368,6 +378,7 @@ export class XRPLClientWrapper {
    * @throws {XRPLClientError} If request times out
    */
   public async getServerInfo(): Promise<ServerInfo> {
+    await this.ensureConnected();
     const response = (await withTimeout(
       this.client.request({
         command: 'server_info',
@@ -395,6 +406,7 @@ export class XRPLClientWrapper {
    * @throws {XRPLClientError} If request times out
    */
   public async getAccountInfo(address: XRPLAddress): Promise<AccountInfo> {
+    await this.ensureConnected();
     try {
       const response = (await withTimeout(
         this.client.request({
@@ -445,6 +457,7 @@ export class XRPLClientWrapper {
    * @returns Transaction response
    */
   public async getTransaction(hash: TransactionHash): Promise<TxResponse> {
+    await this.ensureConnected();
     return this.client.request({
       command: 'tx',
       transaction: hash,
@@ -463,6 +476,7 @@ export class XRPLClientWrapper {
     hash: TransactionHash,
     options: WaitOptions = {}
   ): Promise<XRPLTransactionResult> {
+    await this.ensureConnected();
     const timeout = options.timeout ?? 20000;
     const pollInterval = options.pollInterval ?? 1000;
     const startTime = Date.now();
@@ -511,6 +525,7 @@ export class XRPLClientWrapper {
    * @returns Current validated ledger index
    */
   public async getCurrentLedgerIndex(): Promise<number> {
+    await this.ensureConnected();
     const response = await this.client.request({
       command: 'ledger',
       ledger_index: 'validated',
@@ -524,6 +539,7 @@ export class XRPLClientWrapper {
    * @returns Estimated fee in drops
    */
   public async getFee(): Promise<string> {
+    await this.ensureConnected();
     const response = await this.client.request({
       command: 'fee',
     });
@@ -541,6 +557,7 @@ export class XRPLClientWrapper {
     address: XRPLAddress,
     options: TxHistoryOptions = {}
   ): Promise<unknown[]> {
+    await this.ensureConnected();
     const response = await this.client.request({
       command: 'account_tx',
       account: address,
@@ -570,6 +587,9 @@ export class XRPLClientWrapper {
       failHard: false,
       ...options,
     };
+
+    // Ensure connected before submit
+    await this.ensureConnected();
 
     // Submit transaction
     const response = (await this.client.submit(signedTx, {
